@@ -1,1 +1,1 @@
-# Curator
+# doublePlay app
