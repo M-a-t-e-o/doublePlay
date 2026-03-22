@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Database files
+data/
+
 # Environment variables
 .env
 .env.*
