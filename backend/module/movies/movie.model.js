@@ -27,9 +27,9 @@ const movieSchema = new mongoose.Schema({
   posterUrl: {
     type: String    // URL completa ya construida, lista para el <img>
   },
-  backdropUrl: {
-    type: String    // imagen de fondo para el banner del detalle
-  },
+  //backdropUrl: {
+  //  type: String    // imagen de fondo para el banner del detalle
+  //},
   trailerYoutubeId: {
     type: String    // solo el ID (ej: "dQw4w9WgXcQ"), no la URL entera
   },
@@ -78,7 +78,7 @@ const movieSchema = new mongoose.Schema({
 
 // Índices para acelerar las queries más frecuentes del catálogo
 movieSchema.index({ genres: 1 });                     // filtrar por género
-movieSchema.index({ rating: -1 });            // ordenar por puntuación
+movieSchema.index({ 'rating.avg': -1 });            // ordenar por puntuación
 movieSchema.index({ releaseDate: -1 });               // ordenar por fecha
 movieSchema.index({ updatedAt: 1 });                  // el cron busca los más antiguos
 

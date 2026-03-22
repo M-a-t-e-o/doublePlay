@@ -68,7 +68,7 @@ async function getMovieById(tmdbId) {
   return Movie.findOneAndUpdate(
     { tmdbId },
     doc,
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' } // devuelve el documento actualizado
   );
 }
 
