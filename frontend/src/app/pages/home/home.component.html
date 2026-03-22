@@ -1,0 +1,109 @@
+<div class="home-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/home">
+      <span class="brand-badge">DP</span>
+      <span>doublePlay</span>
+    </a>
+
+    <nav class="menu">
+      @for (item of navItems; track trackByRoute($index, item)) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+          class="menu-link"
+        >
+          <span class="dot"></span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="signin-card">
+      <p class="signin-title">Sign in</p>
+      <p class="signin-text">Click to login and sync your lists.</p>
+      <div class="signin-actions">
+        <a routerLink="/login">Login</a>
+        <a routerLink="/register">Register</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <label class="search-box">
+        <span>Search movies, games...</span>
+        <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
+      </label>
+      <button class="profile-button" type="button" routerLink="/profile">U</button>
+    </header>
+
+    <section class="hero-card">
+      <span class="pill">Featured Movie</span>
+      <p class="hero-meta">Sci-Fi · Action</p>
+      <h1>Echoes of the Void</h1>
+      <p class="hero-copy">
+        A deep-space crew discovers a derelict station hiding humanity's darkest secret.
+        As they investigate, the line between reality and simulation starts to break.
+      </p>
+      <div class="hero-actions">
+        <button type="button" class="btn-primary">Play Trailer</button>
+        <button type="button" class="btn-soft" routerLink="/movies">More Info</button>
+      </div>
+      <div class="hero-rating">★ 4.7</div>
+    </section>
+
+    <section class="recommendation">
+      <h2>Cross-Media Recommendations</h2>
+      <p class="quote">
+        "Loved the deep-space mystery of Echoes of the Void? Explore the cosmos in Voidwalker Chronicles."
+      </p>
+      <div class="pair-grid">
+        <article class="pair-card">
+          <p class="badge movie">Movie</p>
+          <h3>Echoes of the Void</h3>
+          <p>Space mystery · 4.7</p>
+        </article>
+        <article class="pair-card">
+          <p class="badge game">Game</p>
+          <h3>Voidwalker Chronicles</h3>
+          <p>Action RPG · 4.8</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="lists">
+      <article>
+        <div class="section-head">
+          <h2>Top Rated Movies</h2>
+          <a routerLink="/movies">See all</a>
+        </div>
+        <div class="cards-grid">
+          @for (movie of topMovies; track trackByTitle($index, movie)) {
+            <article class="media-card">
+              <h3>{{ movie.title }}</h3>
+              <p>{{ movie.genre }}</p>
+              <span>★ {{ movie.rating }}</span>
+            </article>
+          }
+        </div>
+      </article>
+
+      <article>
+        <div class="section-head">
+          <h2>Top Rated Games</h2>
+          <a routerLink="/games">See all</a>
+        </div>
+        <div class="cards-grid">
+          @for (game of topGames; track trackByTitle($index, game)) {
+            <article class="media-card">
+              <h3>{{ game.title }}</h3>
+              <p>{{ game.genre }}</p>
+              <span>★ {{ game.rating }}</span>
+            </article>
+          }
+        </div>
+      </article>
+    </section>
+  </main>
+</div>

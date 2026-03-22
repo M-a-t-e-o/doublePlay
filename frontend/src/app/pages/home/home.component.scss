@@ -1,0 +1,377 @@
+.home-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  color: var(--text-main);
+}
+
+.sidebar {
+  border-right: 1px solid var(--line);
+  padding: 1.2rem 1rem;
+  background: linear-gradient(180deg, rgb(9 11 24 / 96%) 0%, rgb(8 10 22 / 88%) 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.brand-badge {
+  width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #51bcff 0%, #6f53ff 75%);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.menu {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.menu-link {
+  text-decoration: none;
+  color: var(--text-soft);
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  transition: all 180ms ease;
+}
+
+.menu-link:hover {
+  color: var(--text-main);
+  background: rgb(123 92 255 / 15%);
+}
+
+.menu-link.is-active {
+  color: var(--text-main);
+  background: linear-gradient(90deg, rgb(123 92 255 / 35%), rgb(123 92 255 / 18%));
+  box-shadow: inset 0 0 0 1px rgb(166 147 255 / 32%);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: rgb(143 154 199 / 52%);
+}
+
+.menu-link.is-active .dot {
+  background: #b09dff;
+}
+
+.signin-card {
+  margin-top: auto;
+  padding: 1rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(160deg, rgb(24 28 53 / 95%), rgb(17 20 42 / 90%));
+  border: 1px solid rgb(122 97 255 / 28%);
+}
+
+.signin-title {
+  font-weight: 700;
+}
+
+.signin-text {
+  margin-top: 0.45rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.signin-actions {
+  margin-top: 0.85rem;
+  display: flex;
+  gap: 0.85rem;
+}
+
+.signin-actions a {
+  text-decoration: none;
+  color: #c6b8ff;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.content {
+  padding: 1rem 1.3rem 1.6rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: rgb(16 20 42 / 80%);
+  border-radius: 1rem;
+  padding: 0.65rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.search-box span {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.search-box input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.profile-button {
+  border: 1px solid var(--line);
+  background: rgb(19 23 45 / 95%);
+  color: var(--text-main);
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+  border-radius: 1.2rem;
+  padding: 1.6rem;
+  border: 1px solid rgb(73 84 131 / 45%);
+  background:
+    radial-gradient(700px 300px at 85% 15%, rgb(220 225 255 / 24%), transparent 42%),
+    linear-gradient(140deg, rgb(6 8 20 / 92%) 0%, rgb(12 16 36 / 82%) 44%, rgb(18 25 54 / 94%) 100%);
+}
+
+.hero-card::after {
+  content: '';
+  position: absolute;
+  right: -6%;
+  top: 10%;
+  width: 42%;
+  height: 78%;
+  border-radius: 45% 55% 40% 60%;
+  background: linear-gradient(180deg, rgb(230 236 255 / 28%), rgb(151 169 222 / 4%));
+  filter: blur(1px);
+}
+
+.hero-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgb(123 92 255 / 30%);
+  color: #d3c7ff;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.hero-meta {
+  margin-top: 0.65rem;
+  color: var(--text-soft);
+}
+
+.hero-card h1 {
+  margin-top: 0.65rem;
+  font-size: clamp(1.8rem, 4.2vw, 3rem);
+  max-width: 15ch;
+}
+
+.hero-copy {
+  margin-top: 0.8rem;
+  max-width: 56ch;
+  color: #bac3ea;
+}
+
+.hero-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.btn-primary,
+.btn-soft {
+  border: 0;
+  border-radius: 0.85rem;
+  padding: 0.68rem 1.05rem;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  color: #fff;
+}
+
+.btn-soft {
+  color: var(--text-main);
+  background: rgb(255 255 255 / 13%);
+}
+
+.hero-rating {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 3;
+  background: rgb(0 0 0 / 36%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-weight: 700;
+}
+
+.recommendation,
+.lists article {
+  border: 1px solid rgb(56 64 109 / 45%);
+  border-radius: 1rem;
+  background: linear-gradient(170deg, rgb(14 17 38 / 90%), rgb(9 12 31 / 88%));
+  padding: 1rem;
+}
+
+.recommendation h2,
+.section-head h2 {
+  font-size: 1.4rem;
+}
+
+.quote {
+  margin-top: 0.65rem;
+  color: var(--text-soft);
+}
+
+.pair-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.pair-card {
+  padding: 0.85rem;
+  border-radius: 0.9rem;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+}
+
+.badge {
+  width: fit-content;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+.badge.movie {
+  background: rgb(255 191 0 / 18%);
+  color: #ffd26c;
+}
+
+.badge.game {
+  background: rgb(0 207 255 / 18%);
+  color: #79e8ff;
+}
+
+.lists {
+  display: grid;
+  gap: 1rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-head a {
+  color: #b5a7ff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.cards-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.media-card {
+  border: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 4%);
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+}
+
+.media-card p {
+  margin-top: 0.35rem;
+  color: var(--text-soft);
+}
+
+.media-card span {
+  margin-top: 0.7rem;
+  display: inline-block;
+  color: #f6d46f;
+  font-weight: 700;
+}
+
+@media (max-width: 1024px) {
+  .home-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .signin-card {
+    margin-top: 0.4rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .content {
+    padding: 0.85rem;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-button {
+    width: 100%;
+    border-radius: 0.85rem;
+    height: 2.5rem;
+  }
+
+  .pair-grid,
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-card {
+    min-height: 0;
+  }
+}
