@@ -5,11 +5,23 @@
 /tmp
 /out-tsc
 /bazel-out
+/build
 
 # Node
 /node_modules
 npm-debug.log
+npm-debug.log
+npm-debug.log*
 yarn-error.log
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # IDEs and editors
 .idea/
@@ -19,14 +31,7 @@ yarn-error.log
 *.launch
 .settings/
 *.sublime-workspace
-
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.history/*
+.vscode/
 
 # Miscellaneous
 /.angular/cache

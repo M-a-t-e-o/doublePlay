@@ -2,6 +2,8 @@
 
 Backend de la aplicacion doublePlay construido con **Node.js + Express + MongoDB (Mongoose)**.
 
+**SOLO LOCAL DE MOMENTO**
+
 ## Objetivo
 
 Este servicio se encarga de:
@@ -17,20 +19,24 @@ Este servicio se encarga de:
 backend/
 |-- index.js
 |-- package.json
-|-- .env
 |-- routes/
 |-- module/
-`-- middleware/
+|-- jobs/
+|-- scripts/
+|-- middleware/
+`-- tests/
 ```
 
 Descripcion de cada elemento:
 
 - `index.js`: punto de entrada del servidor. Inicializa Express, configura middlewares globales, conecta a MongoDB y levanta la API en el puerto definido.
-- `package.json`: define scripts (`start`, `dev`) y dependencias del backend.
-- `.env`: variables de entorno sensibles (por ejemplo, URI de MongoDB, puerto y secretos JWT).
+- `package.json`: define scripts (`start`,`test`, `dev`) y dependencias del backend.
 - `routes/`: define endpoints agrupados por dominio/feature (usuarios, auth, partidos, etc.). Normalmente solo enruta peticiones y delega logica.
 - `module/`: contiene la logica de negocio y/o modelos de datos (segun vuestra convencion del proyecto). Aqui suele residir la parte principal de cada funcionalidad.
+- `jobs/`: 
+- `scripts/`: 
 - `middleware/`: funciones intermedias reutilizables para validaciones, control de acceso, manejo de errores, verificacion de token, etc.
+- `tests/`: contiene los tests de los modulos y un runner para ejecutarlos de forma sencilla
 
 Nota: aunque algunas carpetas puedan estar en evolucion segun la rama, esta es la organizacion funcional esperada del backend.
 
@@ -40,13 +46,15 @@ Nota: aunque algunas carpetas puedan estar en evolucion segun la rama, esta es l
 - npm 9 o superior
 - MongoDB accesible (local o Atlas)
 
-## Configuracion local
+## Comandos
 
-1. Entrar al backend:
+1. Entrar al backend (siempre todo desde la carpeta):
 
 ```bash
 cd backend
 ```
+
+### Instalación:
 
 2. Instalar dependencias:
 
@@ -56,19 +64,32 @@ npm install
 
 3. Crear o completar el archivo `.env`
 
-## Como levantar el backend en local
+### Lanzar backend
 
-### Modo desarrollo (autoreload)
+```bash
+npm start
+```
+
+### Lanzar backend (modo 'dev')
 
 ```bash
 npm run dev
 ```
 
-### Modo produccion/local simple
+### Lanzar tests
+
+2. Lanzar backend en terminal-1:
 
 ```bash
-npm start
+npm run dev
 ```
+
+3. Lanzar tests en terminal-2:
+
+```bash
+npm run test
+```
+
 
 Al arrancar correctamente deberias ver en consola mensajes como:
 
@@ -93,6 +114,7 @@ Respuesta esperada:
 
 - `npm start`: ejecuta el backend con Node.
 - `npm run dev`: ejecuta con Nodemon para desarrollo.
+- `npm run test`: ejecuta el runner de tests.
 
 ## Stack del backend
 
