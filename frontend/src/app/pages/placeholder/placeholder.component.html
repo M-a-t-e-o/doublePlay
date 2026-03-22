@@ -1,0 +1,21 @@
+@if (pageData$ | async; as page) {
+  <section class="placeholder-shell">
+    <article class="placeholder-card">
+      <p class="tag">Frontend preview</p>
+      <h1>{{ page.title }}</h1>
+      <p class="subtitle">{{ page.subtitle }}</p>
+
+      <div class="mock-block">
+        <p class="mock-title">Mock backend contract</p>
+        <p>Suggested endpoint: <strong>{{ page.apiPath }}</strong></p>
+        <p>Expected status: <strong>200 OK</strong></p>
+        <p>Expected response: <strong>{{ '{ data: [], meta: {} }' }}</strong></p>
+      </div>
+
+      <div class="actions">
+        <a class="btn-main" routerLink="/home">{{ page.ctaLabel }}</a>
+        <a class="btn-soft" routerLink="/login">Go to Login</a>
+      </div>
+    </article>
+  </section>
+}
