@@ -149,6 +149,12 @@ h1 {
   color: #b7a7ff;
 }
 
+.form-error {
+  margin: 0.8rem 0 0;
+  color: #ff9ca8;
+  font-size: 0.9rem;
+}
+
 .submit-btn {
   margin-top: 1rem;
   width: 100%;
@@ -160,6 +166,11 @@ h1 {
   font-weight: 700;
   background: linear-gradient(90deg, #6d2fff, #5db4de);
   cursor: pointer;
+}
+
+.submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .switch-line {

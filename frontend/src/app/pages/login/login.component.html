@@ -15,14 +15,14 @@
     <h1>Welcome back</h1>
     <p class="subtitle">Sign in to continue your entertainment journey</p>
 
-    <form class="auth-form" novalidate>
+    <form class="auth-form" novalidate (ngSubmit)="onSubmitLogin()">
       <label class="field-label" for="email">Email</label>
       <div class="input-wrap">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z" stroke="currentColor" stroke-width="1.5"></path>
           <path d="m5 8 7 5 7-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-        <input id="email" type="email" placeholder="your@email.com" />
+        <input id="email" name="email" type="email" placeholder="your@email.com" [(ngModel)]="email" />
       </div>
 
       <label class="field-label" for="password">Password</label>
@@ -31,7 +31,7 @@
           <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
           <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
         </svg>
-        <input id="password" type="password" value="password" />
+        <input id="password" name="password" type="password" placeholder="Enter your password" [(ngModel)]="password" />
         <button class="icon-btn" type="button" aria-label="Show password">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.5"></path>
@@ -42,7 +42,13 @@
 
       <a class="forgot-link" href="#">Forgot password?</a>
 
-      <button class="submit-btn" type="button">Sign in</button>
+      @if (errorMessage) {
+        <p class="form-error">{{ errorMessage }}</p>
+      }
+
+      <button class="submit-btn" type="submit" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Sign in' }}
+      </button>
     </form>
 
     <p class="switch-line">
