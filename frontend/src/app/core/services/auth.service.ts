@@ -8,12 +8,12 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  register(data: { username: string, email: string, password: string, birthDate: string }) {
+  register(data: { name: string, email: string, password: string }) {
     return this.http.post(`${this.api}/auth/register`, data)
   }
 
   login(data: { email: string, password: string }) {
-    return this.http.post<{ token: string, user: any }>(`${this.api}/auth/login`, data)
+    return this.http.post<{ token: string, name: string }>(`${this.api}/auth/login`, data)
   }
 
   saveToken(token: string) {

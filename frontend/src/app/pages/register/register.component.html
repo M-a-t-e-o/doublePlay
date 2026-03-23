@@ -1,0 +1,88 @@
+<section class="auth-shell">
+  <div class="auth-glow"></div>
+
+  <article class="auth-card">
+    <a class="brand" routerLink="/home" aria-label="Back to home">
+      <span class="logo-box">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"></circle>
+          <path d="M10 9.6L15.2 12L10 14.4V9.6Z" fill="currentColor"></path>
+        </svg>
+      </span>
+      <span class="brand-text">double<span>Play</span></span>
+    </a>
+
+    <h1>Create your account</h1>
+    <p class="subtitle">Join doublePlay and discover your next favorite movie or game</p>
+
+    <form class="auth-form" novalidate (ngSubmit)="onSubmitRegister()">
+      <label class="field-label" for="fullname">Full Name</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.5"></circle>
+          <path d="M5.5 18.5c1.8-2.7 4-4 6.5-4s4.7 1.3 6.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+        <input id="fullname" name="fullName" type="text" placeholder="John Doe" [(ngModel)]="fullName" />
+      </div>
+
+      <label class="field-label" for="email">Email</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z" stroke="currentColor" stroke-width="1.5"></path>
+          <path d="m5 8 7 5 7-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <input id="email" name="email" type="email" placeholder="your@email.com" [(ngModel)]="email" />
+      </div>
+
+      <label class="field-label" for="password">Password</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
+        </svg>
+        <input id="password" name="password" type="password" placeholder="Create a password" [(ngModel)]="password" />
+        <button class="icon-btn" type="button" aria-label="Show password">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.5"></path>
+            <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.5"></circle>
+          </svg>
+        </button>
+      </div>
+      <p class="helper">Must be at least 8 characters</p>
+
+      <label class="field-label" for="confirm-password">Confirm Password</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7.5 10V8.5a4.5 4.5 0 1 1 9 0V10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+          <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.5"></rect>
+        </svg>
+        <input id="confirm-password" name="confirmPassword" type="password" placeholder="Confirm your password" [(ngModel)]="confirmPassword" />
+        <button class="icon-btn" type="button" aria-label="Show confirm password">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.5"></path>
+            <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.5"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <label class="terms">
+        <input type="checkbox" name="acceptedTerms" [(ngModel)]="acceptedTerms" />
+        <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+      </label>
+
+      @if (errorMessage) {
+        <p class="form-error">{{ errorMessage }}</p>
+      }
+
+      <button class="submit-btn" type="submit" [disabled]="loading">
+        {{ loading ? 'Creating account...' : 'Create account' }}
+      </button>
+    </form>
+
+    <p class="switch-line">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </article>
+
+  <p class="legal">Protected by industry-standard encryption</p>
+</section>
