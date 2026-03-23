@@ -15,22 +15,12 @@ export const routes: Routes = [
 	{
 		path: 'login',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Login',
-			subtitle: 'Accede para sincronizar favoritos, listas y recomendaciones personalizadas.',
-			ctaLabel: 'Ir a Home'
-		} satisfies PlaceholderRouteData
+			import('./pages/login/login.component').then((m) => m.LoginComponent)
 	},
 	{
 		path: 'register',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Registro',
-			subtitle: 'Crea tu cuenta para guardar progreso y descubrir contenido cruzado.',
-			ctaLabel: 'Ir a Home'
-		} satisfies PlaceholderRouteData
+			import('./pages/register/register.component').then((m) => m.RegisterComponent)
 	},
 	{
 		path: 'movies',
