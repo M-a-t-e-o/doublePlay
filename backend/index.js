@@ -25,7 +25,11 @@ app.get('/', (req, res) => {
 });
 
 const authRoutes = require('./routes/auth');
+const movieRoutes = require('./routes/movies');
+const gameRoutes  = require('./routes/games');
 app.use('/api/auth', authRoutes);
+app.use('/api/movies', movieRoutes);
+app.use('/api/games',  gameRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

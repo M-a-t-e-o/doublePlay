@@ -53,7 +53,7 @@ const gameSchema = new mongoose.Schema({
     avg:   { type: Number, default: 0 },
     count: { type: Number, default: 0 }
   },
-  views: {
+  numberReviews: {
     type: Number,
     default: 0
   },
