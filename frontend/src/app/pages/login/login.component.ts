@@ -39,7 +39,11 @@ export class LoginComponent {
         this.router.navigate(['/home']);
       },
       error: (error: HttpErrorResponse) => {
-        this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+        if (error.status === 0) {
+          this.errorMessage = 'Cannot connect to backend';
+        } else {
+          this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+        }
         this.loading = false;
       },
       complete: () => {

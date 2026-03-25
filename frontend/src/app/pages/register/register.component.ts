@@ -55,7 +55,11 @@ export class RegisterComponent {
         this.router.navigate(['/login']);
       },
       error: (error: HttpErrorResponse) => {
-        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+        if (error.status === 0) {
+          this.errorMessage = 'Cannot connect to backend';
+        } else {
+          this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+        }
         this.loading = false;
       },
       complete: () => {

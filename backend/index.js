@@ -7,8 +7,19 @@ const cors     = require('cors');
 const { initRefreshJobs } = require('./jobs/refreshJobs');
 
 const app = express();
+const allowedOrigins = [
+  'http://localhost:4200',
+  'https://doubleplay-frontend.onrender.com'
+];
+
 app.use(cors({
-  origin: 'https://doubleplay-frontend.onrender.com/'
+  origin: (origin, callback) => {
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  }
 }));
 
 app.use(express.json());

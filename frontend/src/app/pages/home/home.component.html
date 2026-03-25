@@ -11,9 +11,10 @@
           [routerLink]="item.route"
           routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+          [class.menu-link--admin]="item.route === '/admin'"
           class="menu-link"
         >
-          <span class="dot"></span>
+          <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </a>
       }
@@ -39,18 +40,27 @@
     </header>
 
     <section class="hero-card">
-      <span class="pill">Featured Movie</span>
-      <p class="hero-meta">Sci-Fi · Action</p>
-      <h1>Echoes of the Void</h1>
-      <p class="hero-copy">
-        A deep-space crew discovers a derelict station hiding humanity's darkest secret.
-        As they investigate, the line between reality and simulation starts to break.
-      </p>
-      <div class="hero-actions">
-        <button type="button" class="btn-primary">Play Trailer</button>
-        <button type="button" class="btn-soft" routerLink="/movies">More Info</button>
-      </div>
-      <div class="hero-rating">★ 4.7</div>
+      @if (isLoadingMovies) {
+        <span class="pill">Featured Movie</span>
+        <p class="hero-meta">Cargando...</p>
+        <h1>Cargando catalogo</h1>
+      } @else if (featuredMovie) {
+        <img class="hero-poster" [src]="getPosterUrl(featuredMovie)" [alt]="featuredMovie.title" />
+        <span class="pill">Featured Movie</span>
+        <p class="hero-meta">{{ featuredMovie.genre }}</p>
+        <h1>{{ featuredMovie.title }}</h1>
+        <p class="hero-copy">{{ featuredMovie.description }}</p>
+        <div class="hero-actions">
+          <button type="button" class="btn-primary" routerLink="/movies">Ver catalogo</button>
+          <button type="button" class="btn-soft" routerLink="/movies">More Info</button>
+        </div>
+        <div class="hero-rating">★ {{ featuredMovie.rating.toFixed(1) }}</div>
+      } @else {
+        <span class="pill">Featured Movie</span>
+        <p class="hero-meta">Sin datos</p>
+        <h1>No hay peliculas disponibles</h1>
+        <p class="hero-copy">Revisa que el backend este activo para cargar el catalogo.</p>
+      }
     </section>
 
     <section class="recommendation">
@@ -78,12 +88,23 @@
           <h2>Top Rated Movies</h2>
           <a routerLink="/movies">See all</a>
         </div>
-        <div class="cards-grid">
+        @if (moviesError) {
+          <p class="quote">{{ moviesError }}</p>
+        }
+        <div class="cards-grid cards-grid--compact">
           @for (movie of topMovies; track trackByTitle($index, movie)) {
             <article class="media-card">
+              <img class="media-card-image" [src]="getPosterUrl(movie)" [alt]="movie.title" />
               <h3>{{ movie.title }}</h3>
               <p>{{ movie.genre }}</p>
               <span>★ {{ movie.rating }}</span>
+            </article>
+          }
+
+          @if (!isLoadingMovies && topMovies.length === 0 && !moviesError) {
+            <article class="media-card">
+              <h3>Sin peliculas</h3>
+              <p>No se encontraron resultados del backend.</p>
             </article>
           }
         </div>
@@ -94,12 +115,30 @@
           <h2>Top Rated Games</h2>
           <a routerLink="/games">See all</a>
         </div>
-        <div class="cards-grid">
+        @if (gamesError) {
+          <p class="quote">{{ gamesError }}</p>
+        }
+        <div class="cards-grid cards-grid--compact">
           @for (game of topGames; track trackByTitle($index, game)) {
             <article class="media-card">
+              <img class="media-card-image" [src]="getPosterUrl(game)" [alt]="game.title" />
               <h3>{{ game.title }}</h3>
               <p>{{ game.genre }}</p>
               <span>★ {{ game.rating }}</span>
+            </article>
+          }
+
+          @if (isLoadingGames) {
+            <article class="media-card">
+              <h3>Cargando juegos...</h3>
+              <p>Esperando datos del backend.</p>
+            </article>
+          }
+
+          @if (!isLoadingGames && topGames.length === 0 && !gamesError) {
+            <article class="media-card">
+              <h3>Sin juegos</h3>
+              <p>No se encontraron resultados del backend.</p>
             </article>
           }
         </div>

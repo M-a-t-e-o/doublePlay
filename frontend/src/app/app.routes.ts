@@ -25,12 +25,7 @@ export const routes: Routes = [
 	{
 		path: 'movies',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Movies',
-			subtitle: 'Listado de peliculas top, filtros por genero y recomendaciones.',
-			ctaLabel: 'Explorar Home'
-		} satisfies PlaceholderRouteData
+			import('./pages/movies/movies.component').then((m) => m.MoviesComponent)
 	},
 	{
 		path: 'games',

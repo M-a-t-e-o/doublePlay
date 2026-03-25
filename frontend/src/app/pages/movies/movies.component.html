@@ -1,0 +1,166 @@
+<div class="movies-shell">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <a class="brand" routerLink="/home">
+      <span class="brand-badge">DP</span>
+      <span>doublePlay</span>
+    </a>
+
+    <nav class="menu">
+      @for (item of navItems; track trackByRoute($index, item)) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+          [class.menu-link--admin]="item.route === '/admin'"
+          class="menu-link"
+        >
+          <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="signin-card">
+      <p class="signin-title">Sign in</p>
+      <p class="signin-text">Click to login and sync your lists.</p>
+      <div class="signin-actions">
+        <a routerLink="/login">Login</a>
+        <a routerLink="/register">Register</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <!-- Header -->
+    <header class="movies-header">
+      <div class="header-content">
+        <h1>Movies Catalog</h1>
+        <p class="subtitle">Discover the best movies</p>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="controls-section">
+      <!-- Search row -->
+      <div class="search-row">
+        <input
+          type="text"
+          placeholder="Search movies..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="applyFiltersAndSort()"
+          class="search-input"
+        />
+      </div>
+
+      <!-- Filters and Sort row -->
+      <div class="filters-row">
+        <div class="filters">
+          <button
+            *ngFor="let genre of genres"
+            [class.active]="selectedGenre === genre"
+            (click)="onGenreFilter(genre)"
+            class="filter-btn"
+          >
+            {{ genre }}
+          </button>
+        </div>
+
+        <div class="sort-controls">
+          <select [(ngModel)]="sortBy" (ngModelChange)="applyFiltersAndSort()" class="sort-select">
+            <option value="stars">⭐ Sort by Stars</option>
+            <option value="views">📊 Sort by Views</option>
+            <option value="title">📝 Sort by Title</option>
+            <option value="releaseDate">📅 Sort by Release Date</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Movies Grid -->
+    <section class="movies-grid">
+      <div *ngIf="isLoading" class="no-results">
+        <p>Cargando peliculas...</p>
+      </div>
+
+      <div *ngIf="errorMessage && !isLoading" class="no-results">
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <div
+        *ngIf="!isLoading && !errorMessage && filteredMovies.length === 0"
+        class="no-results"
+      >
+        <p>No movies found. Try adjusting your filters or search query.</p>
+      </div>
+
+      <article
+        *ngFor="let movie of filteredMovies; trackBy: trackByMovieId"
+        class="movie-card"
+      >
+        <div class="movie-image">
+          <img [src]="movie.posterUrl" [alt]="movie.title" />
+        </div>
+
+        <div class="movie-info">
+          <h3 class="movie-title">{{ movie.title }}</h3>
+          <p class="movie-genre">{{ movie.genre.join(', ') }}</p>
+
+          <div class="rating-section">
+            <div class="stars">
+              <span
+                *ngFor="let _ of getStarArray(movie.rating)"
+                class="star filled"
+              >⭐</span>
+              <span
+                *ngIf="movie.rating % 1 !== 0"
+                class="star half"
+              >⭐</span>
+              <span class="rating-value">{{ movie.rating.toFixed(1) }}</span>
+            </div>
+            <p class="views">{{ formatViews(movie.views) }} views</p>
+          </div>
+
+          <p class="movie-description">{{ movie.description }}</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="pagination" *ngIf="!isLoading && !errorMessage && totalMovies > 0">
+      <p class="pagination-summary">
+        Showing {{ filteredMovies.length }} of {{ totalMovies }} movies · Page {{ currentPage }} / {{ totalPages }}
+      </p>
+
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button
+          type="button"
+          class="page-btn"
+          (click)="goToPreviousPage()"
+          [disabled]="currentPage === 1"
+        >
+          Previous
+        </button>
+
+        <button
+          type="button"
+          class="page-btn"
+          *ngFor="let page of visiblePages; trackBy: trackByPage"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          type="button"
+          class="page-btn"
+          (click)="goToNextPage()"
+          [disabled]="currentPage === totalPages"
+        >
+          Next
+        </button>
+      </div>
+    </section>
+  </main>
+</div>
