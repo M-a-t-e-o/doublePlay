@@ -12,6 +12,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
 }
 
 .brand {
@@ -42,34 +46,42 @@
 .menu-link {
   text-decoration: none;
   color: var(--text-soft);
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.85rem;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.75rem;
   transition: all 180ms ease;
+  border: 1px solid transparent;
 }
 
 .menu-link:hover {
   color: var(--text-main);
-  background: rgb(123 92 255 / 15%);
+  background: rgb(123 92 255 / 12%);
 }
 
 .menu-link.is-active {
   color: var(--text-main);
-  background: linear-gradient(90deg, rgb(123 92 255 / 35%), rgb(123 92 255 / 18%));
-  box-shadow: inset 0 0 0 1px rgb(166 147 255 / 32%);
+  background: linear-gradient(90deg, rgb(98 47 190 / 60%), rgb(71 25 152 / 48%));
+  border-color: rgb(140 101 237 / 35%);
+  box-shadow: inset 0 0 0 1px rgb(177 145 255 / 18%);
 }
 
-.dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: rgb(143 154 199 / 52%);
+.menu-icon {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: #9aa4d1;
 }
 
-.menu-link.is-active .dot {
-  background: #b09dff;
+.menu-link.is-active .menu-icon {
+  color: #c8b1ff;
+}
+
+.menu-link--admin {
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(52 58 94 / 45%);
 }
 
 .signin-card {
@@ -152,30 +164,50 @@
 .hero-card {
   position: relative;
   overflow: hidden;
-  min-height: 320px;
+  min-height: 280px;
+  max-height: 300px;
   border-radius: 1.2rem;
-  padding: 1.6rem;
+  padding: 1.4rem 1.6rem;
   border: 1px solid rgb(73 84 131 / 45%);
-  background:
-    radial-gradient(700px 300px at 85% 15%, rgb(220 225 255 / 24%), transparent 42%),
-    linear-gradient(140deg, rgb(6 8 20 / 92%) 0%, rgb(12 16 36 / 82%) 44%, rgb(18 25 54 / 94%) 100%);
+  background: linear-gradient(140deg, rgb(6 8 20 / 92%) 0%, rgb(12 16 36 / 82%) 44%, rgb(18 25 54 / 94%) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 .hero-card::after {
   content: '';
   position: absolute;
-  right: -6%;
-  top: 10%;
-  width: 42%;
-  height: 78%;
-  border-radius: 45% 55% 40% 60%;
-  background: linear-gradient(180deg, rgb(230 236 255 / 28%), rgb(151 169 222 / 4%));
-  filter: blur(1px);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  border-radius: 1.2rem;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 75%) 25%, rgb(0 0 0 / 40%) 60%, rgb(0 0 0 / 10%) 100%),
+    linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 45%) 40%, rgb(0 0 0 / 75%) 100%);
+  pointer-events: none;
 }
 
-.hero-card > * {
+.hero-card > :not(.hero-poster) {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+}
+
+.hero-poster {
+  position: absolute;
+  inset: -1.4rem -1.6rem -1.4rem -1.6rem;
+  width: calc(100% + 3.2rem);
+  height: calc(100% + 2.8rem);
+  object-fit: cover;
+  object-position: center 35%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .pill {
@@ -183,41 +215,61 @@
   align-items: center;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
-  background: rgb(123 92 255 / 30%);
-  color: #d3c7ff;
+  background: rgb(123 92 255 / 40%);
+  color: #ffffff;
   font-weight: 700;
   font-size: 0.78rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+  width: fit-content;
 }
 
 .hero-meta {
-  margin-top: 0.65rem;
-  color: var(--text-soft);
+  margin: 0;
+  margin-top: 0.2rem;
+  color: #e0e0e0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  font-size: 0.85rem;
 }
 
 .hero-card h1 {
-  margin-top: 0.65rem;
+  margin: 0;
+  margin-top: 0.4rem;
   font-size: clamp(1.8rem, 4.2vw, 3rem);
   max-width: 15ch;
+  color: #ffffff;
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  line-height: 1.1;
 }
 
 .hero-copy {
-  margin-top: 0.8rem;
+  margin: 0;
+  margin-top: 0.3rem;
   max-width: 56ch;
-  color: #bac3ea;
+  color: #f0f0f0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  flex-shrink: 0;
 }
 
 .hero-actions {
-  margin-top: 1rem;
+  margin-top: 0.65rem;
   display: flex;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .btn-primary,
 .btn-soft {
   border: 0;
   border-radius: 0.85rem;
-  padding: 0.68rem 1.05rem;
+  padding: 0.5rem 0.8rem;
   font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .btn-primary {
@@ -231,15 +283,15 @@
 }
 
 .hero-rating {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 3;
+  align-self: flex-start;
   background: rgb(0 0 0 / 36%);
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
   font-weight: 700;
+  font-size: 0.85rem;
+  z-index: 3;
+  color: #ffffff;
 }
 
 .recommendation,
@@ -316,11 +368,52 @@
   gap: 0.8rem;
 }
 
+.cards-grid--compact {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.7rem;
+  overflow: hidden;
+}
+
 .media-card {
   border: 1px solid rgb(255 255 255 / 8%);
   background: rgb(255 255 255 / 4%);
   border-radius: 0.9rem;
   padding: 0.85rem;
+}
+
+.cards-grid--compact .media-card {
+  flex: 0 0 150px;
+  padding: 0.55rem;
+}
+
+.media-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0.7rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  margin-bottom: 0.65rem;
+}
+
+.cards-grid--compact .media-card-image {
+  aspect-ratio: 2 / 3;
+  margin-bottom: 0.45rem;
+}
+
+.cards-grid--compact .media-card h3 {
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.cards-grid--compact .media-card p {
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.cards-grid--compact .media-card span {
+  margin-top: 0.45rem;
+  font-size: 0.9rem;
 }
 
 .media-card p {
@@ -341,6 +434,8 @@
   }
 
   .sidebar {
+    position: static;
+    height: auto;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -372,6 +467,8 @@
   }
 
   .hero-card {
-    min-height: 0;
+    min-height: 240px;
+    max-height: 260px;
+    padding: 1.1rem;
   }
 }

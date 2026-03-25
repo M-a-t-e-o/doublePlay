@@ -12,9 +12,10 @@
           [routerLink]="item.route"
           routerLinkActive="is-active"
           [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+          [class.menu-link--admin]="item.route === '/admin'"
           class="menu-link"
         >
-          <span class="dot"></span>
+          <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </a>
       }
@@ -79,8 +80,16 @@
 
     <!-- Movies Grid -->
     <section class="movies-grid">
+      <div *ngIf="isLoading" class="no-results">
+        <p>Cargando peliculas...</p>
+      </div>
+
+      <div *ngIf="errorMessage && !isLoading" class="no-results">
+        <p>{{ errorMessage }}</p>
+      </div>
+
       <div
-        *ngIf="filteredMovies.length === 0"
+        *ngIf="!isLoading && !errorMessage && filteredMovies.length === 0"
         class="no-results"
       >
         <p>No movies found. Try adjusting your filters or search query.</p>
@@ -92,7 +101,6 @@
       >
         <div class="movie-image">
           <img [src]="movie.posterUrl" [alt]="movie.title" />
-          <span class="badge">Movie</span>
         </div>
 
         <div class="movie-info">
@@ -117,6 +125,42 @@
           <p class="movie-description">{{ movie.description }}</p>
         </div>
       </article>
+    </section>
+
+    <section class="pagination" *ngIf="!isLoading && !errorMessage && totalMovies > 0">
+      <p class="pagination-summary">
+        Showing {{ filteredMovies.length }} of {{ totalMovies }} movies · Page {{ currentPage }} / {{ totalPages }}
+      </p>
+
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button
+          type="button"
+          class="page-btn"
+          (click)="goToPreviousPage()"
+          [disabled]="currentPage === 1"
+        >
+          Previous
+        </button>
+
+        <button
+          type="button"
+          class="page-btn"
+          *ngFor="let page of visiblePages; trackBy: trackByPage"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          type="button"
+          class="page-btn"
+          (click)="goToNextPage()"
+          [disabled]="currentPage === totalPages"
+        >
+          Next
+        </button>
+      </div>
     </section>
   </main>
 </div>

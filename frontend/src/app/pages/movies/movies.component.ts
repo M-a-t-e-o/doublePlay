@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 interface Movie {
   id: string;
@@ -14,12 +16,38 @@ interface Movie {
   releaseDate: Date;
 }
 
+interface MoviesApiResponse {
+  data: BackendMovie[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+interface BackendMovie {
+  _id: string;
+  title: string;
+  genres?: string[];
+  description?: string;
+  posterUrl?: string;
+  releaseDate?: string;
+  rating?: {
+    avg?: number;
+  };
+  numberReviews?: number;
+}
+
 type SortOption = 'stars' | 'views' | 'title' | 'releaseDate';
 type FilterGenre = 'All' | string;
 
 type NavItem = {
   label: string;
   route: string;
+  icon: string;
 };
 
 @Component({
@@ -30,172 +58,158 @@ type NavItem = {
   styleUrl: './movies.component.scss'
 })
 export class MoviesComponent implements OnInit {
+  private readonly api = environment.apiUrl;
+  private readonly pageSize = 20;
+
   movies: Movie[] = [];
   filteredMovies: Movie[] = [];
+  isLoading = false;
+  errorMessage = '';
+  currentPage = 1;
+  totalPages = 1;
+  totalMovies = 0;
   
   searchQuery: string = '';
   selectedGenre: FilterGenre = 'All';
   sortBy: SortOption = 'stars';
   
-  genres: FilterGenre[] = [
-    'All',
-    'Action',
-    'Sci-Fi',
-    'Fantasy',
-    'RPG',
-    'Horror',
-    'Adventure',
-    'Thriller',
-    'FPS',
-    'Drama',
-    'Strategy'
-  ];
+  genres: FilterGenre[] = ['All'];
 
   readonly navItems: NavItem[] = [
-    { label: 'Home', route: '/home' },
-    { label: 'Movies', route: '/movies' },
-    { label: 'Games', route: '/games' },
-    { label: 'AI Chat', route: '/chatbot' },
-    { label: 'Social', route: '/social' },
-    { label: 'Profile', route: '/profile' },
-    { label: 'Admin Panel', route: '/admin' }
+    { label: 'Home', route: '/home', icon: 'home' },
+    { label: 'Movies', route: '/movies', icon: 'movie' },
+    { label: 'Games', route: '/games', icon: 'stadia_controller' },
+    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
+    { label: 'Social', route: '/social', icon: 'groups' },
+    { label: 'Profile', route: '/profile', icon: 'person' },
+    { label: 'Admin Panel', route: '/admin', icon: 'shield' }
   ];
 
-  // Mock data - reemplazar con datos del backend
-  readonly mockMovies: Movie[] = [
-    {
-      id: '1',
-      title: 'Echoes of the Void',
-      genre: ['Sci-Fi'],
-      rating: 4.7,
-      views: 128,
-      description: 'A deep-space crew discovers a derelict station hiding humanity\'s darkest secret.',
-      posterUrl: 'https://picsum.photos/250/400?random=1',
-      releaseDate: new Date('2024-11-15')
-    },
-    {
-      id: '2',
-      title: 'Parallel Lines',
-      genre: ['Drama'],
-      rating: 4.6,
-      views: 83,
-      description: 'Two strangers, living in parallel timelines, realize they must discover the truth.',
-      posterUrl: 'https://picsum.photos/250/400?random=2',
-      releaseDate: new Date('2024-09-22')
-    },
-    {
-      id: '3',
-      title: 'Neon Horizon',
-      genre: ['Thriller'],
-      rating: 4.5,
-      views: 95,
-      description: 'In a rain-soaked megacity, a detective uncovers a conspiracy that shakes the city.',
-      posterUrl: 'https://picsum.photos/250/400?random=3',
-      releaseDate: new Date('2024-10-08')
-    },
-    {
-      id: '4',
-      title: 'Forsaken Realm',
-      genre: ['Fantasy'],
-      rating: 4.3,
-      views: 74,
-      description: 'An exiled knight returns to a kingdom ruled by shadow magic and ancient curses.',
-      posterUrl: 'https://picsum.photos/250/400?random=4',
-      releaseDate: new Date('2024-08-30')
-    },
-    {
-      id: '5',
-      title: 'The Last Signal',
-      genre: ['Horror'],
-      rating: 4.1,
-      views: 62,
-      description: 'A radio astronomer intercepts a signal from a dying star—but the message is alive.',
-      posterUrl: 'https://picsum.photos/250/400?random=5',
-      releaseDate: new Date('2024-07-12')
-    },
-    {
-      id: '6',
-      title: 'Void Protocol',
-      genre: ['Action', 'Sci-Fi'],
-      rating: 4.4,
-      views: 110,
-      description: 'Secret agents must infiltrate an orbital station before time runs out.',
-      posterUrl: 'https://picsum.photos/250/400?random=6',
-      releaseDate: new Date('2024-12-01')
-    },
-    {
-      id: '7',
-      title: 'Crimson Dawn',
-      genre: ['Adventure'],
-      rating: 4.2,
-      views: 78,
-      description: 'A treasure hunter explores ancient ruins and awakens something better left buried.',
-      posterUrl: 'https://picsum.photos/250/400?random=7',
-      releaseDate: new Date('2024-06-15')
-    },
-    {
-      id: '8',
-      title: 'Silent Echo',
-      genre: ['Drama', 'Thriller'],
-      rating: 4.0,
-      views: 56,
-      description: 'In a world without sound, communication becomes the most dangerous weapon.',
-      posterUrl: 'https://picsum.photos/250/400?random=8',
-      releaseDate: new Date('2024-05-20')
-    }
-  ];
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.movies = this.mockMovies;
-    this.applyFiltersAndSort();
+    this.loadGenres();
+    this.loadMovies();
   }
 
   onGenreFilter(genre: FilterGenre): void {
     this.selectedGenre = genre;
-    this.applyFiltersAndSort();
+    this.currentPage = 1;
+    this.loadMovies();
   }
 
   onSortChange(sort: SortOption): void {
     this.sortBy = sort;
-    this.applyFiltersAndSort();
+    this.currentPage = 1;
+    this.loadMovies();
   }
 
   applyFiltersAndSort(): void {
-    let filtered = [...this.movies];
+    this.currentPage = 1;
+    this.loadMovies();
+  }
 
-    // Aplicar búsqueda
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(m =>
-        m.title.toLowerCase().includes(query) ||
-        m.description.toLowerCase().includes(query)
-      );
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.currentPage || this.isLoading) {
+      return;
     }
 
-    // Aplicar filtro de género
-    if (this.selectedGenre !== 'All') {
-      filtered = filtered.filter(m =>
-        m.genre.some(g => g.toLowerCase() === this.selectedGenre.toLowerCase())
-      );
+    this.currentPage = page;
+    this.loadMovies();
+  }
+
+  goToPreviousPage(): void {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  goToNextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  get visiblePages(): number[] {
+    const maxButtons = 5;
+    const half = Math.floor(maxButtons / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = Math.min(this.totalPages, start + maxButtons - 1);
+
+    if (end - start + 1 < maxButtons) {
+      start = Math.max(1, end - maxButtons + 1);
     }
 
-    // Aplicar ordenamiento
-    switch (this.sortBy) {
-      case 'stars':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }
+
+  private loadGenres(): void {
+    this.http.get<string[]>(`${this.api}/movies/genres/list`).subscribe({
+      next: (genres) => {
+        const safeGenres = (genres ?? []).filter((genre) => !!genre?.trim());
+        this.genres = ['All', ...safeGenres];
+      },
+      error: () => {
+        this.genres = ['All'];
+      }
+    });
+  }
+
+  private loadMovies(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.http
+      .get<MoviesApiResponse>(`${this.api}/movies`, {
+        params: {
+          limit: String(this.pageSize),
+          page: String(this.currentPage),
+          sort: this.mapSortOption(this.sortBy),
+          ...(this.searchQuery.trim() ? { search: this.searchQuery.trim() } : {}),
+          ...(this.selectedGenre !== 'All' ? { genre: this.selectedGenre } : {})
+        }
+      })
+      .subscribe({
+        next: (response) => {
+          this.movies = (response.data ?? []).map((movie) => this.mapMovie(movie));
+          this.filteredMovies = [...this.movies];
+          this.totalPages = Math.max(1, response.pagination?.totalPages ?? 1);
+          this.totalMovies = Math.max(0, response.pagination?.total ?? 0);
+          this.currentPage = Math.min(this.currentPage, this.totalPages);
+          this.isLoading = false;
+        },
+        error: () => {
+          this.movies = [];
+          this.filteredMovies = [];
+          this.totalPages = 1;
+          this.totalMovies = 0;
+          this.errorMessage = 'No se pudieron cargar las peliculas del backend.';
+          this.isLoading = false;
+        }
+      });
+  }
+
+  private mapSortOption(sortBy: SortOption): string {
+    switch (sortBy) {
       case 'views':
-        filtered.sort((a, b) => b.views - a.views);
-        break;
+        return 'reviews_desc';
       case 'title':
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
+        return 'title_asc';
       case 'releaseDate':
-        filtered.sort((a, b) => b.releaseDate.getTime() - a.releaseDate.getTime());
-        break;
+        return 'date_desc';
+      case 'stars':
+      default:
+        return 'rating_desc';
     }
+  }
 
-    this.filteredMovies = filtered;
+  private mapMovie(movie: BackendMovie): Movie {
+    return {
+      id: movie._id,
+      title: movie.title,
+      genre: movie.genres ?? [],
+      rating: Number(movie.rating?.avg ?? 0),
+      views: Number(movie.numberReviews ?? 0),
+      description: movie.description ?? 'Sin descripcion disponible.',
+      posterUrl: movie.posterUrl ?? 'https://placehold.co/250x400?text=No+Image',
+      releaseDate: movie.releaseDate ? new Date(movie.releaseDate) : new Date(0)
+    };
   }
 
   getStarArray(rating: number): number[] {
@@ -216,5 +230,9 @@ export class MoviesComponent implements OnInit {
 
   trackByRoute(_: number, item: NavItem): string {
     return item.route;
+  }
+
+  trackByPage(_: number, page: number): number {
+    return page;
   }
 }
