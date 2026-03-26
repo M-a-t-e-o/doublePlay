@@ -5,6 +5,21 @@ const mongoose = require('mongoose');
 const JSONStream = require('JSONStream');
 const Game     = require('../module/games/game.model');
 
+// Géneros y tags que indican contenido sexual explícito
+const SEXUAL_GENRES = new Set([
+  'Sexual Content',
+  'Nudity'
+]);
+
+const SEXUAL_TAGS = new Set([
+  'Sexual Content',
+  'Nudity', 
+  'Adult Content',
+  'NSFW',
+  'Hentai',
+  'Eroge'
+]);
+
 // ── Parsea fechas en texto libre de Steam ─────────────────────
 function parseDate(str) {
   if (!str) return null;
@@ -39,10 +54,19 @@ function transform(appId, raw) {
 
 // ── Filtro de calidad ─────────────────────────────────────────
 function passesFilter(raw) {
-  if (!raw.name)                              return false;
-  if (!raw.short_description)                 return false;
-  if (!raw.genres || raw.genres.length === 0) return false;
-  if ((raw.positive || 0) < 100)              return false;
+  if (!raw.name)                               return false;
+  if (!raw.short_description)                  return false;
+  if (!raw.genres || raw.genres.length === 0)  return false;
+  if ((raw.positive || 0) < 100)               return false;
+
+  // Excluir por género oficial de Steam
+  const genres = raw.genres || [];
+  if (genres.some(g => SEXUAL_GENRES.has(g)))  return false;
+
+  // Excluir por tags de comunidad
+  const tags = raw.tags ? Object.keys(raw.tags) : [];
+  if (tags.some(t => SEXUAL_TAGS.has(t)))      return false;
+
   return true;
 }
 

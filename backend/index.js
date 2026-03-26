@@ -24,6 +24,11 @@ app.use(cors({
 
 app.use(express.json());
 
+//mongoose.connect(process.env.MONGO_URI, {
+//  dbName: process.env.MONGO_DB_NAME || 'doubleplay'
+//})
+//  .then(() => console.log(`MongoDB connected to DB: ${mongoose.connection.name}`))
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');
