@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 
 type NavItem = {
@@ -17,6 +18,7 @@ type MediaCard = {
   rating: number;
   description: string;
   posterUrl: string;
+  trailerYoutubeId?: string;
 };
 
 type MoviesApiResponse = {
@@ -33,6 +35,7 @@ type BackendMovie = {
   genres?: string[];
   description?: string;
   posterUrl?: string;
+  trailerYoutubeId?: string;
   rating?: {
     avg?: number;
   };
@@ -78,8 +81,12 @@ export class HomeComponent implements OnInit {
   topGames: MediaCard[] = [];
   isLoadingGames = false;
   gamesError = '';
+  
+  showTrailerModal = false;
+  trailerVideoId: string | null = null;
+  trailerUrl: SafeResourceUrl | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.loadTopMovies();
@@ -152,7 +159,8 @@ export class HomeComponent implements OnInit {
       genre: movie.genres?.[0] ?? 'Sin genero',
       rating: Number(movie.rating?.avg ?? 0),
       description: movie.description ?? 'Sin descripcion disponible.',
-      posterUrl: movie.posterUrl ?? this.fallbackPoster
+      posterUrl: movie.posterUrl ?? this.fallbackPoster,
+      trailerYoutubeId: movie.trailerYoutubeId
     };
   }
 
@@ -169,6 +177,25 @@ export class HomeComponent implements OnInit {
 
   getPosterUrl(media: MediaCard): string {
     return media.posterUrl?.trim() || this.fallbackPoster;
+  }
+openTrailer(media: MediaCard): void {
+    this.trailerVideoId = media.trailerYoutubeId || null;
+    if (this.trailerVideoId) {
+      this.trailerUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        `https://www.youtube.com/embed/${this.trailerVideoId}?autoplay=1&rel=0`
+      );
+    } else {
+      this.trailerUrl = null;
+    }
+    this.showTrailerModal = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeTrailer(): void {
+    this.showTrailerModal = false;
+    this.trailerVideoId = null;
+    this.trailerUrl = null;
+    document.body.style.overflow = '';
   }
 
   trackByRoute = (_: number, item: NavItem): string => item.route;
