@@ -7,15 +7,27 @@ const cors     = require('cors');
 const { initRefreshJobs } = require('./jobs/refreshJobs');
 
 const app = express();
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   'http://localhost:4200',
+  'http://127.0.0.1:4200',
   'https://doubleplay-frontend.onrender.com'
 ];
 
+const envAllowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
+const renderOriginRegex = /^https:\/\/[a-z0-9-]+\.onrender\.com$/i;
+
 app.use(cors({
   origin: (origin, callback) => {
-    
-    if (!origin || allowedOrigins.includes(origin)) {
+    const isAllowedOrigin = !origin
+      || allowedOrigins.includes(origin)
+      || renderOriginRegex.test(origin);
+
+    if (isAllowedOrigin) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
