@@ -30,12 +30,7 @@ export const routes: Routes = [
 	{
 		path: 'games',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Games',
-			subtitle: 'Catalogo de juegos, tendencias y ranking por comunidad.',
-			ctaLabel: 'Explorar Home'
-		} satisfies PlaceholderRouteData
+			import('./pages/games/games.component').then((m) => m.GamesComponent)
 	},
 	{
 		path: 'chatbot',

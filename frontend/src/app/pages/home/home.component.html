@@ -41,23 +41,29 @@
 
     <section class="hero-card">
       @if (isLoadingMovies) {
-        <span class="pill">Featured Movie</span>
-        <p class="hero-meta">Cargando...</p>
+        <div class="hero-tags">
+          <span class="pill">Featured Movie</span>
+          <span class="hero-meta">Cargando...</span>
+        </div>
         <h1>Cargando catalogo</h1>
       } @else if (featuredMovie) {
         <img class="hero-poster" [src]="getPosterUrl(featuredMovie)" [alt]="featuredMovie.title" />
-        <span class="pill">Featured Movie</span>
-        <p class="hero-meta">{{ featuredMovie.genre }}</p>
+        <div class="hero-tags">
+          <span class="pill">Featured Movie</span>
+          <span class="hero-meta">{{ featuredMovie.genre }}</span>
+        </div>
         <h1>{{ featuredMovie.title }}</h1>
         <p class="hero-copy">{{ featuredMovie.description }}</p>
         <div class="hero-actions">
-          <button type="button" class="btn-primary" routerLink="/movies">Ver catalogo</button>
+          <button type="button" class="btn-primary" (click)="openTrailer(featuredMovie!)">▶ Ver trailer</button>
           <button type="button" class="btn-soft" routerLink="/movies">More Info</button>
         </div>
         <div class="hero-rating">★ {{ featuredMovie.rating.toFixed(1) }}</div>
       } @else {
-        <span class="pill">Featured Movie</span>
-        <p class="hero-meta">Sin datos</p>
+        <div class="hero-tags">
+          <span class="pill">Featured Movie</span>
+          <span class="hero-meta">Sin datos</span>
+        </div>
         <h1>No hay peliculas disponibles</h1>
         <p class="hero-copy">Revisa que el backend este activo para cargar el catalogo.</p>
       }
@@ -146,3 +152,25 @@
     </section>
   </main>
 </div>
+
+<!-- Trailer Modal -->
+@if (showTrailerModal) {
+  <div class="trailer-modal-overlay" (click)="closeTrailer()">
+    <div class="trailer-modal-content" (click)="$event.stopPropagation()">
+      <button class="trailer-modal-close" (click)="closeTrailer()">✕</button>
+      @if (trailerVideoId) {
+        <iframe
+          class="trailer-video"
+          [src]="trailerUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      } @else {
+        <div class="trailer-placeholder">
+          <p>🎬 Trailer no disponible en este momento</p>
+        </div>
+      }
+    </div>
+  </div>
+}
