@@ -3,11 +3,16 @@ const mongoose = require('mongoose');
 const reviewSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
-    type: {
+    contentType: {
         type: String,
         enum: ['game', 'movie'],
+        required: true
+    },
+    contentId: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     answerTo: {
@@ -18,14 +23,24 @@ const reviewSchema = new mongoose.Schema({
     content: {
         type: String,
         required: true,
-        // Max length for the review
-        maxlength: 500
+        maxlength: 1000,
+        trim: true
     },
     rating: {
         type: Number,
-        min: 0,
-        max: 5
+        min: 1,
+        max: 5,
+        default: null
     }
-})
+}, { timestamps: true });
+
+// Solo una reseña raíz por usuario para cada contenido
+reviewSchema.index(
+    { user: 1, contentType: 1, contentId: 1 },
+    { unique: true, partialFilterExpression: { answerTo: null } }
+);
+
+reviewSchema.index({ contentType: 1, contentId: 1, answerTo: 1, createdAt: -1 });
+reviewSchema.index({ answerTo: 1, createdAt: 1 });
 
 module.exports = mongoose.model('Review', reviewSchema);

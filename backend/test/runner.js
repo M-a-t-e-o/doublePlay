@@ -2,10 +2,21 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+let rl = null;
+
+function createRunnerInterface() {
+  rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+}
+
+function closeRunnerInterface() {
+  if (rl) {
+    rl.close();
+    rl = null;
+  }
+}
 
 function ask(question) {
   return new Promise((resolve) => {
@@ -65,6 +76,8 @@ async function runModule(modulePath, moduleName) {
 }
 
 async function main() {
+  createRunnerInterface();
+
   console.log('\n╔════════════════════════════════════════════╗');
   console.log('║     DoublePlay - Test Module Runner        ║');
   console.log('╚════════════════════════════════════════════╝\n');
@@ -74,7 +87,7 @@ async function main() {
   if (modules.length === 0) {
     console.log('No test modules found.');
     console.log('Expected structure: test/{moduleName}/index.js with a run() function\n');
-    rl.close();
+    closeRunnerInterface();
     return;
   }
 
@@ -95,15 +108,20 @@ async function main() {
       break;
     } else if (selected === modules.length + 1) {
       console.log('\n');
+      closeRunnerInterface();
       for (const mod of modules) {
         const success = await runModule(mod.path, mod.displayName);
         if (!success) {
           console.log(`⚠️ Tests failed for ${mod.displayName}\n`);
         }
       }
+      createRunnerInterface();
     } else if (selected > 0 && selected <= modules.length) {
       const mod = modules[selected - 1];
+
+      closeRunnerInterface();
       await runModule(mod.path, mod.displayName);
+      createRunnerInterface();
     } else {
       console.log('\nInvalid option, try again.\n');
     }
@@ -111,7 +129,7 @@ async function main() {
     console.log('');
   }
 
-  rl.close();
+  closeRunnerInterface();
 }
 
 main();
