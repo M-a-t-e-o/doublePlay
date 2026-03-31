@@ -103,8 +103,10 @@ async function run() {
     console.log('8) PATCH /games/:id/watched');
     console.log('9) PATCH /games/:id/wishlist');
     console.log('10) PATCH /games/:id/rating (1..5 o null)');
-    console.log('11) Probar sin token (debe dar 401)');
-    console.log('12) Mostrar estado local (token/ids)');
+    console.log('11) GET /movies/:id/views (conteo)');
+    console.log('12) GET /games/:id/views (conteo)');
+    console.log('13) Probar sin token (debe dar 401)');
+    console.log('14) Mostrar estado local (token/ids)');
     console.log('0) Salir\n');
 
     const option = await ask('> ');
@@ -274,10 +276,30 @@ async function run() {
           continue;
         }
 
+        const res = await requestJson(`${moviesBase}/${id}/views`);
+        printResponse('GET MOVIE VIEWS COUNT', res);
+
+      } else if (option === '12') {
+        const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
+        if (!id) {
+          console.log('\nCargar primero un ID con la opcion 2.\n');
+          continue;
+        }
+
+        const res = await requestJson(`${gamesBase}/${id}/views`);
+        printResponse('GET GAME VIEWS COUNT', res);
+
+      } else if (option === '13') {
+        const id = (await ask(`Movie ID [${state.movieId || 'none'}]: `)) || state.movieId;
+        if (!id) {
+          console.log('\nCargar primero un ID con la opcion 2.\n');
+          continue;
+        }
+
         const res = await requestJson(`${moviesBase}/${id}/interaction`);
         printResponse('UNAUTHORIZED TEST (EXPECTED 401)', res);
 
-      } else if (option === '12') {
+      } else if (option === '14') {
         console.log('\nEstado actual:');
         console.log(`email: ${state.email || '(vacio)'}`);
         console.log(`token: ${state.token ? '(guardado)' : '(vacio)'}`);

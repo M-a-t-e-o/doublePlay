@@ -117,6 +117,35 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ── GET /api/games/:id/views ─────────────────────────────────
+// Devuelve solo el número de usuarios que marcaron el juego como visto
+router.get('/:id/views', async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid game id' });
+    }
+
+    const game = await Game.findById(req.params.id).select('_id');
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' });
+    }
+
+    const viewsCount = await Interaction.countDocuments({
+      contentType: 'game',
+      contentId: game._id,
+      watched: true
+    });
+
+    return res.json({
+      contentType: 'game',
+      contentId: game._id,
+      viewsCount
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ── GET /api/games/:id/interaction ───────────────────────────
 // Estado de interacción del usuario autenticado con este juego
 router.get('/:id/interaction', authRequired, async (req, res) => {

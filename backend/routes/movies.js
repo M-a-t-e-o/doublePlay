@@ -124,6 +124,35 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// ── GET /api/movies/:id/views ────────────────────────────────
+// Devuelve solo el número de usuarios que marcaron la película como vista
+router.get('/:id/views', async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid movie id' });
+    }
+
+    const movie = await Movie.findById(req.params.id).select('_id');
+    if (!movie) {
+      return res.status(404).json({ message: 'Movie not found' });
+    }
+
+    const viewsCount = await Interaction.countDocuments({
+      contentType: 'movie',
+      contentId: movie._id,
+      watched: true
+    });
+
+    return res.json({
+      contentType: 'movie',
+      contentId: movie._id,
+      viewsCount
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // ── GET /api/movies/:id/interaction ──────────────────────────
 // Estado de interacción del usuario autenticado con esta película
 router.get('/:id/interaction', authRequired, async (req, res) => {
