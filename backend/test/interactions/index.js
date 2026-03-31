@@ -98,15 +98,13 @@ async function run() {
     console.log('3) GET /movies/:id/interaction (requiere token)');
     console.log('4) PATCH /movies/:id/watched');
     console.log('5) PATCH /movies/:id/wishlist');
-    console.log('6) PATCH /movies/:id/rating (1..5 o null)');
-    console.log('7) GET /games/:id/interaction (requiere token)');
-    console.log('8) PATCH /games/:id/watched');
-    console.log('9) PATCH /games/:id/wishlist');
-    console.log('10) PATCH /games/:id/rating (1..5 o null)');
-    console.log('11) GET /movies/:id/views (conteo)');
-    console.log('12) GET /games/:id/views (conteo)');
-    console.log('13) Probar sin token (debe dar 401)');
-    console.log('14) Mostrar estado local (token/ids)');
+    console.log('6) GET /games/:id/interaction (requiere token)');
+    console.log('7) PATCH /games/:id/watched');
+    console.log('8) PATCH /games/:id/wishlist');
+    console.log('9) GET /movies/:id/views (conteo)');
+    console.log('10) GET /games/:id/views (conteo)');
+    console.log('11) Probar sin token (debe dar 401)');
+    console.log('12) Mostrar estado local (token/ids)');
     console.log('0) Salir\n');
 
     const option = await ask('> ');
@@ -187,23 +185,6 @@ async function run() {
         printResponse('PATCH MOVIE WISHLIST', res);
 
       } else if (option === '6') {
-        const id = (await ask(`Movie ID [${state.movieId || 'none'}]: `)) || state.movieId;
-        const ratingRaw = (await ask('rating [5 | null]: ')) || '5';
-        if (!id) {
-          console.log('\nCargar primero un ID con la opcion 2.\n');
-          continue;
-        }
-
-        const rating = ratingRaw.toLowerCase() === 'null' ? null : parseInt(ratingRaw, 10);
-        const res = await requestJson(
-          `${moviesBase}/${id}/rating`,
-          'PATCH',
-          { rating },
-          state.token ? { Authorization: `Bearer ${state.token}` } : {}
-        );
-        printResponse('PATCH MOVIE RATING', res);
-
-      } else if (option === '7') {
         const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
         if (!id) {
           console.log('\nCargar primero un ID con la opcion 2.\n');
@@ -218,7 +199,7 @@ async function run() {
         );
         printResponse('GET GAME INTERACTION', res);
 
-      } else if (option === '8') {
+      } else if (option === '7') {
         const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
         const watchedRaw = (await ask('watched (true/false) [true]: ')) || 'true';
         if (!id) {
@@ -235,7 +216,7 @@ async function run() {
         );
         printResponse('PATCH GAME WATCHED', res);
 
-      } else if (option === '9') {
+      } else if (option === '8') {
         const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
         const wishlistRaw = (await ask('inWishlist (true/false) [true]: ')) || 'true';
         if (!id) {
@@ -252,24 +233,7 @@ async function run() {
         );
         printResponse('PATCH GAME WISHLIST', res);
 
-      } else if (option === '10') {
-        const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
-        const ratingRaw = (await ask('rating [5 | null]: ')) || '5';
-        if (!id) {
-          console.log('\nCargar primero un ID con la opcion 2.\n');
-          continue;
-        }
-
-        const rating = ratingRaw.toLowerCase() === 'null' ? null : parseInt(ratingRaw, 10);
-        const res = await requestJson(
-          `${gamesBase}/${id}/rating`,
-          'PATCH',
-          { rating },
-          state.token ? { Authorization: `Bearer ${state.token}` } : {}
-        );
-        printResponse('PATCH GAME RATING', res);
-
-      } else if (option === '11') {
+      } else if (option === '9') {
         const id = (await ask(`Movie ID [${state.movieId || 'none'}]: `)) || state.movieId;
         if (!id) {
           console.log('\nCargar primero un ID con la opcion 2.\n');
@@ -279,7 +243,7 @@ async function run() {
         const res = await requestJson(`${moviesBase}/${id}/views`);
         printResponse('GET MOVIE VIEWS COUNT', res);
 
-      } else if (option === '12') {
+      } else if (option === '10') {
         const id = (await ask(`Game ID [${state.gameId || 'none'}]: `)) || state.gameId;
         if (!id) {
           console.log('\nCargar primero un ID con la opcion 2.\n');
@@ -289,7 +253,7 @@ async function run() {
         const res = await requestJson(`${gamesBase}/${id}/views`);
         printResponse('GET GAME VIEWS COUNT', res);
 
-      } else if (option === '13') {
+      } else if (option === '11') {
         const id = (await ask(`Movie ID [${state.movieId || 'none'}]: `)) || state.movieId;
         if (!id) {
           console.log('\nCargar primero un ID con la opcion 2.\n');
@@ -299,7 +263,7 @@ async function run() {
         const res = await requestJson(`${moviesBase}/${id}/interaction`);
         printResponse('UNAUTHORIZED TEST (EXPECTED 401)', res);
 
-      } else if (option === '14') {
+      } else if (option === '12') {
         console.log('\nEstado actual:');
         console.log(`email: ${state.email || '(vacio)'}`);
         console.log(`token: ${state.token ? '(guardado)' : '(vacio)'}`);

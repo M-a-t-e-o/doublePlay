@@ -31,16 +31,6 @@ const interactionSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  rating: {
-    type: Number,
-    min: 1,
-    max: 5,
-    default: null
-  },
-  ratedAt: {
-    type: Date,
-    default: null
-  }
 }, { timestamps: true });
 
 interactionSchema.index({ user: 1, contentType: 1, contentId: 1 }, { unique: true });
