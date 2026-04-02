@@ -1,0 +1,39 @@
+<aside class="sidebar">
+  <a class="brand" routerLink="/home">
+    <img class="brand-logo" src="/icono_doubleplay.png" alt="doublePlay logo" />
+    <span>doublePlay</span>
+  </a>
+
+  <nav class="menu">
+    @for (item of navItems; track trackByRoute($index, item)) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+        [class.menu-link--admin]="item.route === '/admin'"
+        class="menu-link"
+      >
+        <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="signin-card">
+    @if (isLoggedIn) {
+      <p class="signin-title">Signed in</p>
+      <p class="signin-text">Hi {{ displayName }}, your lists are synced.</p>
+      <div class="signin-actions">
+        <a routerLink="/profile">Profile</a>
+        <button type="button" (click)="logout()">Logout</button>
+      </div>
+    } @else {
+      <p class="signin-title">Sign in</p>
+      <p class="signin-text">Click to login and sync your lists.</p>
+      <div class="signin-actions">
+        <a routerLink="/login">Login</a>
+        <a routerLink="/register">Register</a>
+      </div>
+    }
+  </div>
+</aside>

@@ -1,25 +1,5 @@
 <div class="profile-shell">
-  <aside class="sidebar">
-    <a class="brand" routerLink="/home">
-      <span class="brand-badge">DP</span>
-      <span>doublePlay</span>
-    </a>
-
-    <nav class="menu">
-      @for (item of navItems; track trackByRoute($index, item)) {
-        <a
-          [routerLink]="item.route"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
-          [class.menu-link--admin]="item.route === '/admin'"
-          class="menu-link"
-        >
-          <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
-        </a>
-      }
-    </nav>
-  </aside>
+  <app-sidebar></app-sidebar>
 
   <main class="profile-content">
     <header class="topbar">

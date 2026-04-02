@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 
 type NavItem = {
   label: string;
@@ -32,7 +32,7 @@ type LibraryItem = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, SidebarComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })

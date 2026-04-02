@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive, ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
+import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 
 interface BackendMovie {
   _id: string;
@@ -66,7 +67,7 @@ type NavItem = {
 @Component({
   selector: 'app-movie-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent],
   templateUrl: './movie-detail.component.html',
   styleUrl: './movie-detail.component.scss'
 })
@@ -92,16 +93,6 @@ export class MovieDetailComponent implements OnInit {
   readonly reviewMaxLength = 1000;
   private ownReviewId: string | null = null;
   private ownReviewContent: string | null = null;
-
-  readonly navItems: NavItem[] = [
-    { label: 'Home', route: '/home', icon: 'home' },
-    { label: 'Movies', route: '/movies', icon: 'movie' },
-    { label: 'Games', route: '/games', icon: 'stadia_controller' },
-    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
-    { label: 'Social', route: '/social', icon: 'groups' },
-    { label: 'Profile', route: '/profile', icon: 'person' },
-    { label: 'Admin Panel', route: '/admin', icon: 'shield' }
-  ];
 
   constructor(
     private http: HttpClient,
@@ -305,13 +296,6 @@ export class MovieDetailComponent implements OnInit {
     }
   }
 
-  get isLoggedIn(): boolean {
-    return this.authService.isLoggedIn();
-  }
-
-  get displayName(): string {
-    return this.authService.getUserName() || 'User';
-  }
 
   logout(): void {
     this.authService.logout();
