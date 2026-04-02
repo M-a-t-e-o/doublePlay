@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 import { AuthService } from '../../core/services/auth.service';
+import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
 
 interface BackendGame {
   _id: string;
@@ -60,7 +61,7 @@ type PendingAction = {
 @Component({
   selector: 'app-game-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, SearchDropdownComponent],
   templateUrl: './game-detail.component.html',
   styleUrl: './game-detail.component.scss'
 })

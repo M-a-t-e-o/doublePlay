@@ -7,6 +7,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
+import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
 
 interface BackendMovie {
   _id: string;
@@ -58,16 +59,10 @@ type PendingAction = {
   value: boolean | number;
 };
 
-type NavItem = {
-  label: string;
-  route: string;
-  icon: string;
-};
-
 @Component({
   selector: 'app-movie-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent, SearchDropdownComponent],
   templateUrl: './movie-detail.component.html',
   styleUrl: './movie-detail.component.scss'
 })
@@ -313,8 +308,6 @@ export class MovieDetailComponent implements OnInit {
     this.userRating = 0;
     this.interactionMessage = '';
   }
-
-  trackByRoute = (_: number, item: NavItem): string => item.route;
 
   private loadInteraction(movieId: string): void {
     this.http.get<InteractionResponse>(`${this.api}/movies/${movieId}/interaction`).subscribe({

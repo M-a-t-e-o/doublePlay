@@ -45,12 +45,6 @@ interface BackendGame {
 type SortOption = 'stars' | 'views' | 'title' | 'releaseDate';
 type FilterGenre = 'All' | string;
 
-type NavItem = {
-  label: string;
-  route: string;
-  icon: string;
-};
-
 @Component({
   selector: 'app-games',
   standalone: true,
@@ -75,16 +69,6 @@ export class GamesComponent implements OnInit {
   sortBy: SortOption = 'stars';
 
   genres: FilterGenre[] = ['All'];
-
-  readonly navItems: NavItem[] = [
-    { label: 'Home', route: '/home', icon: 'home' },
-    { label: 'Movies', route: '/movies', icon: 'movie' },
-    { label: 'Games', route: '/games', icon: 'stadia_controller' },
-    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
-    { label: 'Social', route: '/social', icon: 'groups' },
-    { label: 'Profile', route: '/profile', icon: 'person' },
-    { label: 'Admin Panel', route: '/admin', icon: 'shield' }
-  ];
 
   constructor(private http: HttpClient) {}
 
@@ -231,10 +215,6 @@ export class GamesComponent implements OnInit {
 
   trackByGameId(_: number, game: Game): string {
     return game.id;
-  }
-
-  trackByRoute(_: number, item: NavItem): string {
-    return item.route;
   }
 
   trackByPage(_: number, page: number): number {

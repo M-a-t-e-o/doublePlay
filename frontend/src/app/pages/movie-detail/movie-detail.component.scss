@@ -155,33 +155,6 @@
   border-bottom: 1px solid var(--line);
 }
 
-.search-box {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid rgb(55 60 96 / 70%);
-  background: rgb(18 21 45 / 75%);
-  border-radius: 0.9rem;
-  padding: 0.6rem 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  max-width: 460px;
-}
-
-.search-box input {
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text-main);
-  font-size: 0.95rem;
-  width: 100%;
-}
-
-.search-box .material-symbols-outlined {
-  font-size: 1.1rem;
-  color: #909aca;
-}
-
 .profile-button {
   margin-left: auto;
   border: 1px solid var(--line);

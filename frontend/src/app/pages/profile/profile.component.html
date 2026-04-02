@@ -3,10 +3,10 @@
 
   <main class="profile-content">
     <header class="topbar">
-      <label class="search-box">
-        <span class="material-symbols-outlined">search</span>
-        <input type="text" aria-label="Search" placeholder="Search movies, games..." />
-      </label>
+      <app-search-dropdown
+        [placeholder]="'Search movies, games...'"
+        [label]="'Search'">
+      </app-search-dropdown>
     </header>
 
     <section class="profile-card">

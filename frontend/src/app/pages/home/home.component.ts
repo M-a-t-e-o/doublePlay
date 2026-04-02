@@ -5,12 +5,7 @@ import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
-
-type NavItem = {
-  label: string;
-  route: string;
-  icon: string;
-};
+import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
 
 type MediaCard = {
   id: string;
@@ -56,7 +51,7 @@ type BackendGame = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent],
+  imports: [CommonModule, RouterLink, SidebarComponent, SearchDropdownComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -75,16 +70,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   readonly ratingStars = [1, 2, 3, 4, 5];
 
-  readonly navItems: NavItem[] = [
-    { label: 'Home', route: '/home', icon: 'home' },
-    { label: 'Movies', route: '/movies', icon: 'movie' },
-    { label: 'Games', route: '/games', icon: 'stadia_controller' },
-    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
-    { label: 'Social', route: '/social', icon: 'groups' },
-    { label: 'Profile', route: '/profile', icon: 'person' },
-    { label: 'Admin Panel', route: '/admin', icon: 'shield' }
-  ];
-
   topMovies: MediaCard[] = [];
   featuredMovie: MediaCard | null = null;
   isLoadingMovies = false;
@@ -92,7 +77,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   topGames: MediaCard[] = [];
   isLoadingGames = false;
   gamesError = '';
-  
   showTrailerModal = false;
   trailerVideoId: string | null = null;
   trailerUrl: SafeResourceUrl | null = null;
@@ -281,8 +265,6 @@ openTrailer(media: MediaCard): void {
     this.trailerUrl = null;
     document.body.style.overflow = '';
   }
-
-  trackByRoute = (_: number, item: NavItem): string => item.route;
 
   trackByTitle = (_: number, item: MediaCard): string => item.title;
 }
