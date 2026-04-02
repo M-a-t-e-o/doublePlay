@@ -1,59 +1,138 @@
-# Frontend
+# Frontend - doublePlay
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
+Frontend de la aplicación doublePlay construido con **Angular 19**.
 
-## Development server
+La aplicación consume la API del backend y ofrece navegación entre catálogo, detalle, autenticación y perfil, con una interfaz con tema dark mode y responsive.
 
-To start a local development server, run:
+## Objetivo
 
-```bash
-ng serve
+Este frontend se encarga de:
+
+- Mostrar el catálogo de películas y juegos.
+- Permitir ver el detalle de cada película o juego.
+- Gestionar login, registro y sesión.
+- Mostrar perfil de usuario con métricas y actividad.
+- Ofrecer búsqueda rápida en varias pantallas.
+
+## Estructura de carpetas
+
+```text
+frontend/
+|-- src/
+|   |-- app/
+|   |   |-- app.component.*
+|   |   |-- app.config.ts
+|   |   |-- app.routes.ts
+|   |   |-- core/
+|   |   |   |-- components/
+|   |   |   |   |-- sidebar/
+|   |   |   |   `-- search-dropdown/
+|   |   |   |-- interceptors/
+|   |   |   `-- services/
+|   |   `-- pages/
+|   |       |-- home/
+|   |       |-- login/
+|   |       |-- register/
+|   |       |-- movies/
+|   |       |-- movie-detail/
+|   |       |-- games/
+|   |       |-- game-detail/
+|   |       |-- profile/
+|   |       `-- placeholder/
+|   |-- main.ts
+|   `-- styles.scss
+|-- angular.json
+|-- package.json
+|-- tsconfig.json
+|-- tsconfig.app.json
+`-- README.md
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Qué hay en cada parte
 
-## Code scaffolding
+- `core/components/`: componentes reutilizables.
+	- `sidebar/`: navegación lateral de la app.
+	- `search-dropdown/`: buscador global con resultados de películas y juegos.
+- `core/services/`: servicios compartidos.
+	- `auth.service.ts`: login, registro, token y sesión.
+	- `search.service.ts`: búsqueda de contenido en backend.
+- `core/interceptors/`: interceptores HTTP, por ejemplo el de autenticación.
+- `pages/`: pantallas principales de la aplicación.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Pantallas principales
+
+- `home`: portada con banner destacado, recomendaciones y listados rápidos.
+- `movies`: catálogo de películas con filtros, ordenación y paginación.
+- `movie-detail`: detalle de película con trailer, interacción y reviews.
+- `games`: catálogo de juegos con filtros, ordenación y paginación.
+- `game-detail`: detalle de juego con información, interacción y reviews.
+- `login`: inicio de sesión.
+- `register`: registro de usuario.
+- `profile`: perfil con estadísticas y bloques de actividad.
+- `placeholder`: pantalla genérica para rutas todavía no implementadas.
+
+## Funcionalidades destacadas
+
+- Buscador reutilizable en Home, Movie Detail, Game Detail y Profile.
+- Navegación directa a detalle de película o juego desde resultados de búsqueda.
+- Catálogos con filtros por género, ordenación y paginación.
+- Modales y acciones de detalle para interacción con contenido.
+
+## Requisitos previos
+
+- Node.js 18 o superior.
+- npm 9 o superior.
+
+## Instalación
+
+1. Entrar en la carpeta del frontend:
 
 ```bash
-ng generate component component-name
+cd frontend
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+2. Instalar dependencias:
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
+## Comandos disponibles
 
-To build the project run:
+### Lanzar en desarrollo
 
 ```bash
-ng build
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+La app se abrirá en `http://localhost:4200/`.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Compilar para producción
 
 ```bash
-ng test
+npm run build
 ```
 
-## Running end-to-end tests
+## Stack principal
 
-For end-to-end (e2e) testing, run:
+- `Angular 19`
+- `TypeScript`
+- `RxJS`
+- `Bootstrap`
+- `Chart.js`
 
-```bash
-ng e2e
-```
+## Notas de desarrollo
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- El proyecto usa componentes standalone.
+- Las rutas están definidas en `src/app/app.routes.ts`.
+- El estilo global vive en `src/styles.scss`.
+- El frontend depende del backend para cargar catálogos, detalles y búsquedas.
 
-## Additional Resources
+## Comprobación rápida
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Si todo está correcto, al ejecutar `npm start` deberías poder:
+
+- Ver la home.
+- Buscar películas o juegos desde la barra superior.
+- Entrar al detalle de un elemento desde el buscador o desde los listados.
+- Abrir login, register y profile sin errores de rutas.
