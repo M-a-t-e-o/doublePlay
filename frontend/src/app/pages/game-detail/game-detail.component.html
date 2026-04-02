@@ -1,0 +1,153 @@
+<div class="game-detail-shell">
+  <app-sidebar></app-sidebar>
+
+  <main class="content">
+    <header class="topbar">
+      <label class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
+      </label>
+      <button class="profile-button" type="button" routerLink="/profile">U</button>
+    </header>
+
+    <header class="detail-header">
+      <button type="button" class="back-link" (click)="goBack()">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back
+      </button>
+    </header>
+
+    @if (isLoading) {
+      <div class="state-message">Cargando juego...</div>
+    } @else if (errorMessage) {
+      <div class="state-message state-error">
+        <p>{{ errorMessage }}</p>
+        <a routerLink="/games" class="btn-back">Volver al catalogo</a>
+      </div>
+    } @else if (game) {
+      <div class="game-detail-container">
+        <section class="hero-section">
+          <img class="hero-image" [src]="getCoverUrl()" [alt]="game.title" />
+          <div class="hero-overlay"></div>
+          <div class="hero-meta">
+            <span class="pill">Game</span>
+            @if (game.genres?.length) {
+              <span class="pill pill-soft">{{ game.genres![0] }}</span>
+            }
+          </div>
+        </section>
+
+        <section class="headline-block">
+          <h1>{{ game.title }}</h1>
+          <div class="rating-block">
+            <span class="rating-stars">★ ★ ★ ★ ★</span>
+            <span class="rating-value">{{ (game.rating?.avg ?? 0).toFixed(1) }}</span>
+            <span class="rating-meta">{{ game.numberReviews ?? 0 }} views</span>
+          </div>
+        </section>
+
+        <div class="main-grid">
+          <div class="info-column">
+            <p class="description">{{ game.description || 'Sin descripcion disponible.' }}</p>
+
+            <section class="details-card">
+              <h2>Details</h2>
+              <div class="details-grid">
+                <div class="item">
+                  <span class="label">Release date</span>
+                  <span class="value">{{ game.releaseDate ? (game.releaseDate | date: 'MMM dd, yyyy') : 'N/A' }}</span>
+                </div>
+                <div class="item">
+                  <span class="label">Genres</span>
+                  <span class="value">{{ game.genres?.length ? game.genres?.join(', ') : 'N/A' }}</span>
+                </div>
+                <div class="item">
+                  <span class="label">Developers</span>
+                  <span class="value">{{ game.developers?.length ? game.developers?.join(', ') : 'N/A' }}</span>
+                </div>
+                <div class="item">
+                  <span class="label">Platforms</span>
+                  <span class="value">{{ platformsLabel }}</span>
+                </div>
+                <div class="item">
+                  <span class="label">Price</span>
+                  <span class="value">{{ (game.price ?? 0) === 0 ? 'Free to play' : ('$' + (game.price ?? 0).toFixed(2)) }}</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="action-column">
+            <section class="action-panel">
+              <button type="button" class="btn-secondary btn-full" (click)="toggleWishlist()" [class.active]="isInWishlist">
+                <span class="material-symbols-outlined">{{ isInWishlist ? 'bookmark' : 'bookmark_border' }}</span>
+                Add to Wishlist
+              </button>
+              <button type="button" class="btn-secondary btn-full" (click)="togglePlayed()" [class.active]="isPlayed">
+                <span class="material-symbols-outlined">check_circle</span>
+                {{ isPlayed ? 'Played!' : 'Mark as Played' }}
+              </button>
+
+              <div class="icon-buttons">
+                <button type="button" class="btn-icon" title="Like">
+                  <span class="material-symbols-outlined">favorite_border</span>
+                  <span>Like</span>
+                </button>
+                <button type="button" class="btn-icon" (click)="shareGame()" title="Share">
+                  <span class="material-symbols-outlined">share</span>
+                  <span>Share</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="user-rating-section">
+              <h2>Your Rating</h2>
+              <div class="star-rating">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <button
+                    type="button"
+                    class="star-btn"
+                    [class.active]="userRating >= star"
+                    (click)="setRating(star)"
+                    [attr.aria-label]="'Rate ' + star + ' stars'"
+                  >
+                    ★
+                  </button>
+                }
+              </div>
+              <p class="rating-hint">Click a star to rate this game</p>
+              @if (interactionMessage) {
+                <p class="rating-feedback">{{ interactionMessage }}</p>
+              }
+            </section>
+          </div>
+        </div>
+      </div>
+
+      @if (showReviewModal) {
+        <div class="review-overlay" (click)="closeReviewModal()">
+          <section class="review-modal" (click)="$event.stopPropagation()">
+            <h3>Write your review</h3>
+            <p class="review-modal-subtitle">Your vote is {{ selectedRating }} star{{ selectedRating > 1 ? 's' : '' }}. Add a short text to save it.</p>
+            <textarea
+              [(ngModel)]="reviewDraft"
+              rows="5"
+              [maxlength]="reviewMaxLength"
+              placeholder="What did you think about this game?"
+            ></textarea>
+            <p class="review-char-count" [class.limit]="reviewLength >= reviewMaxLength">{{ reviewLength }}/{{ reviewMaxLength }}</p>
+            @if (reviewError) {
+              <p class="review-modal-error">{{ reviewError }}</p>
+            }
+            <div class="review-modal-actions">
+              <button type="button" class="btn-soft" (click)="closeReviewModal()" [disabled]="isSubmittingReview">Cancel</button>
+              <button type="button" class="btn-primary" (click)="submitReview()" [disabled]="isSubmittingReview">
+                {{ isSubmittingReview ? 'Saving...' : 'Save review' }}
+              </button>
+            </div>
+          </section>
+        </div>
+      }
+    }
+  </main>
+</div>

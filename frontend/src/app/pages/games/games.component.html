@@ -65,6 +65,12 @@
       >
         <div class="movie-image">
           <img [src]="game.posterUrl" [alt]="game.title" />
+          <div class="movie-overlay">
+            <a [routerLink]="['/games', game.id]" class="more-info-btn">
+              <span class="material-symbols-outlined">info</span>
+              More Info
+            </a>
+          </div>
         </div>
 
         <div class="movie-info">

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 
@@ -53,7 +54,7 @@ type NavItem = {
 @Component({
   selector: 'app-games',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SidebarComponent],
   templateUrl: './games.component.html',
   styleUrl: './games.component.scss'
 })

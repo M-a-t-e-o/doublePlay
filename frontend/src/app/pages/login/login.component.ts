@@ -15,6 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent {
   email = '';
   password = '';
+  showPassword = false;
   loading = false;
   errorMessage = '';
   infoMessage = '';
@@ -60,5 +61,9 @@ export class LoginComponent {
         this.loading = false;
       }
     });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 }

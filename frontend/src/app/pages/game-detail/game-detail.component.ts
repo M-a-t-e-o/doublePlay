@@ -2,30 +2,29 @@ import { CommonModule, Location } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
+import { AuthService } from '../../core/services/auth.service';
 
-interface BackendMovie {
+interface BackendGame {
   _id: string;
   title: string;
-  genres?: string[];
   description?: string;
-  posterUrl?: string;
-  trailerYoutubeId?: string;
+  genres?: string[];
+  coverUrl?: string;
+  releaseDate?: string;
+  developers?: string[];
+  price?: number;
+  platforms?: {
+    windows?: boolean;
+    mac?: boolean;
+    linux?: boolean;
+  };
   rating?: {
     avg?: number;
   };
-  releaseDate?: string;
-  director?: string;
-  runtime?: number;
   numberReviews?: number;
-}
-
-interface MovieDetail extends BackendMovie {
-  views?: number;
 }
 
 type InteractionResponse = {
@@ -40,64 +39,57 @@ type ReviewUser = {
   name?: string;
 };
 
-type MovieReview = {
+type GameReview = {
   id: string;
   user: ReviewUser | string;
   content: string;
   rating: number | null;
 };
 
-type MovieReviewsResponse = {
-  data: MovieReview[];
+type GameReviewsResponse = {
+  data: GameReview[];
   total: number;
 };
 
 type PendingAction = {
-  movieId: string;
-  type: 'watched' | 'wishlist' | 'rating';
+  gameId: string;
+  type: 'played' | 'wishlist' | 'rating';
   value: boolean | number;
 };
 
-type NavItem = {
-  label: string;
-  route: string;
-  icon: string;
-};
-
 @Component({
-  selector: 'app-movie-detail',
+  selector: 'app-game-detail',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, SidebarComponent],
-  templateUrl: './movie-detail.component.html',
-  styleUrl: './movie-detail.component.scss'
+  templateUrl: './game-detail.component.html',
+  styleUrl: './game-detail.component.scss'
 })
-export class MovieDetailComponent implements OnInit {
+export class GameDetailComponent implements OnInit {
   private readonly api = environment.apiUrl;
-  private readonly fallbackPoster = 'https://placehold.co/600x900?text=No+Image';
-  private readonly pendingActionKey = 'movie-detail-pending-action';
+  private readonly fallbackCover = 'https://placehold.co/1200x675?text=No+Image';
+  private readonly pendingActionKey = 'game-detail-pending-action';
 
-  movie: MovieDetail | null = null;
+  game: BackendGame | null = null;
   isLoading = false;
   errorMessage = '';
-  showTrailerModal = false;
-  trailerUrl: SafeResourceUrl | null = null;
-  isWatched = false;
+  isPlayed = false;
   isInWishlist = false;
   userRating = 0;
+  interactionMessage = '';
+
   showReviewModal = false;
   selectedRating = 0;
   reviewDraft = '';
   reviewError = '';
   isSubmittingReview = false;
-  interactionMessage = '';
   readonly reviewMaxLength = 1000;
+
   private ownReviewId: string | null = null;
   private ownReviewContent: string | null = null;
 
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
-    private sanitizer: DomSanitizer,
     private authService: AuthService,
     private router: Router,
     private location: Location
@@ -105,60 +97,38 @@ export class MovieDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      const movieId = params['id'];
-      if (movieId) {
-        this.loadMovieDetail(movieId);
+      const gameId = params['id'];
+      if (gameId) {
+        this.loadGameDetail(gameId);
       }
     });
   }
 
-  private loadMovieDetail(movieId: string): void {
+  private loadGameDetail(gameId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http
-      .get<BackendMovie>(`${this.api}/movies/${movieId}`)
-      .subscribe({
-        next: (response) => {
-          this.movie = response;
-          this.interactionMessage = '';
-          if (this.authService.isLoggedIn()) {
-            this.loadInteraction(movieId);
-          } else {
-            this.isWatched = false;
-            this.isInWishlist = false;
-            this.userRating = 0;
-            this.ownReviewId = null;
-            this.ownReviewContent = null;
-          }
-          this.isLoading = false;
-        },
-        error: () => {
-          this.errorMessage = 'No se pudo cargar la película.';
-          this.movie = null;
-          this.isLoading = false;
+    this.http.get<BackendGame>(`${this.api}/games/${gameId}`).subscribe({
+      next: (game) => {
+        this.game = game;
+        this.interactionMessage = '';
+        if (this.authService.isLoggedIn()) {
+          this.loadInteraction(gameId);
+        } else {
+          this.isPlayed = false;
+          this.isInWishlist = false;
+          this.userRating = 0;
+          this.ownReviewId = null;
+          this.ownReviewContent = null;
         }
-      });
-  }
-
-  getPosterUrl(): string {
-    return this.movie?.posterUrl?.trim() || this.fallbackPoster;
-  }
-
-  openTrailer(): void {
-    if (this.movie?.trailerYoutubeId) {
-      this.trailerUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-        `https://www.youtube.com/embed/${this.movie.trailerYoutubeId}?autoplay=1&rel=0`
-      );
-      this.showTrailerModal = true;
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  closeTrailer(): void {
-    this.showTrailerModal = false;
-    this.trailerUrl = null;
-    document.body.style.overflow = '';
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'No se pudo cargar el juego.';
+        this.game = null;
+        this.isLoading = false;
+      }
+    });
   }
 
   goBack(): void {
@@ -166,67 +136,67 @@ export class MovieDetailComponent implements OnInit {
       this.location.back();
       return;
     }
-    this.router.navigate(['/movies']);
+    this.router.navigate(['/games']);
   }
 
-  toggleWatched(): void {
-    if (!this.movie) {
+  getCoverUrl(): string {
+    return this.game?.coverUrl?.trim() || this.fallbackCover;
+  }
+
+  togglePlayed(): void {
+    if (!this.game) {
       return;
     }
 
-    const nextValue = !this.isWatched;
-    if (!this.ensureLoggedIn({ movieId: this.movie._id, type: 'watched', value: nextValue })) {
+    const nextValue = !this.isPlayed;
+    if (!this.ensureLoggedIn({ gameId: this.game._id, type: 'played', value: nextValue })) {
       return;
     }
 
-    this.http
-      .patch<InteractionResponse>(`${this.api}/movies/${this.movie._id}/watched`, { watched: nextValue })
-      .subscribe({
-        next: (interaction) => {
-          this.applyInteraction(interaction);
-          this.interactionMessage = '';
-        },
-        error: (error: HttpErrorResponse) => {
-          if (this.handleAuthError(error, { movieId: this.movie!._id, type: 'watched', value: nextValue })) {
-            return;
-          }
-          this.interactionMessage = 'No se pudo actualizar watched.';
+    this.http.patch<InteractionResponse>(`${this.api}/games/${this.game._id}/watched`, { watched: nextValue }).subscribe({
+      next: (interaction) => {
+        this.applyInteraction(interaction);
+        this.interactionMessage = '';
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.handleAuthError(error, { gameId: this.game!._id, type: 'played', value: nextValue })) {
+          return;
         }
-      });
+        this.interactionMessage = 'No se pudo actualizar played.';
+      }
+    });
   }
 
   toggleWishlist(): void {
-    if (!this.movie) {
+    if (!this.game) {
       return;
     }
 
     const nextValue = !this.isInWishlist;
-    if (!this.ensureLoggedIn({ movieId: this.movie._id, type: 'wishlist', value: nextValue })) {
+    if (!this.ensureLoggedIn({ gameId: this.game._id, type: 'wishlist', value: nextValue })) {
       return;
     }
 
-    this.http
-      .patch<InteractionResponse>(`${this.api}/movies/${this.movie._id}/wishlist`, { inWishlist: nextValue })
-      .subscribe({
-        next: (interaction) => {
-          this.applyInteraction(interaction);
-          this.interactionMessage = '';
-        },
-        error: (error: HttpErrorResponse) => {
-          if (this.handleAuthError(error, { movieId: this.movie!._id, type: 'wishlist', value: nextValue })) {
-            return;
-          }
-          this.interactionMessage = 'No se pudo actualizar wishlist.';
+    this.http.patch<InteractionResponse>(`${this.api}/games/${this.game._id}/wishlist`, { inWishlist: nextValue }).subscribe({
+      next: (interaction) => {
+        this.applyInteraction(interaction);
+        this.interactionMessage = '';
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.handleAuthError(error, { gameId: this.game!._id, type: 'wishlist', value: nextValue })) {
+          return;
         }
-      });
+        this.interactionMessage = 'No se pudo actualizar wishlist.';
+      }
+    });
   }
 
   setRating(rating: number): void {
-    if (!this.movie) {
+    if (!this.game) {
       return;
     }
 
-    if (!this.ensureLoggedIn({ movieId: this.movie._id, type: 'rating', value: rating })) {
+    if (!this.ensureLoggedIn({ gameId: this.game._id, type: 'rating', value: rating })) {
       return;
     }
 
@@ -250,7 +220,7 @@ export class MovieDetailComponent implements OnInit {
   }
 
   submitReview(): void {
-    if (!this.movie || this.selectedRating < 1 || this.selectedRating > 5) {
+    if (!this.game || this.selectedRating < 1 || this.selectedRating > 5) {
       return;
     }
 
@@ -273,12 +243,12 @@ export class MovieDetailComponent implements OnInit {
       return;
     }
 
-    this.http.post(`${this.api}/movies/${this.movie._id}/reviews`, payload).subscribe({
+    this.http.post(`${this.api}/games/${this.game._id}/reviews`, payload).subscribe({
       next: () => {
         this.onReviewSaved(content);
       },
       error: (error: HttpErrorResponse) => {
-        if (this.handleAuthError(error, { movieId: this.movie!._id, type: 'rating', value: this.selectedRating })) {
+        if (this.handleAuthError(error, { gameId: this.game!._id, type: 'rating', value: this.selectedRating })) {
           this.isSubmittingReview = false;
           this.showReviewModal = false;
           return;
@@ -295,45 +265,34 @@ export class MovieDetailComponent implements OnInit {
     });
   }
 
-  shareMovie(): void {
+  shareGame(): void {
     if (navigator.share) {
       navigator.share({
-        title: this.movie?.title,
-        text: `Check out ${this.movie?.title}`,
+        title: this.game?.title,
+        text: `Check out ${this.game?.title}`,
         url: window.location.href
       });
     }
   }
 
-
-  logout(): void {
-    this.authService.logout();
-    this.isWatched = false;
-    this.isInWishlist = false;
-    this.userRating = 0;
-    this.interactionMessage = '';
-  }
-
-  trackByRoute = (_: number, item: NavItem): string => item.route;
-
-  private loadInteraction(movieId: string): void {
-    this.http.get<InteractionResponse>(`${this.api}/movies/${movieId}/interaction`).subscribe({
+  private loadInteraction(gameId: string): void {
+    this.http.get<InteractionResponse>(`${this.api}/games/${gameId}/interaction`).subscribe({
       next: (interaction) => {
         this.applyInteraction(interaction);
-        this.loadOwnReviewId(movieId);
-        this.consumePendingAction(movieId);
+        this.loadOwnReviewId(gameId);
+        this.consumePendingAction(gameId);
       },
       error: (error: HttpErrorResponse) => {
         if (this.handleAuthError(error)) {
           return;
         }
-        this.consumePendingAction(movieId);
+        this.consumePendingAction(gameId);
       }
     });
   }
 
   private applyInteraction(interaction: InteractionResponse): void {
-    this.isWatched = interaction.watched;
+    this.isPlayed = interaction.watched;
     this.isInWishlist = interaction.inWishlist;
     this.userRating = interaction.rating ?? 0;
     this.ownReviewContent = interaction.reviewContent;
@@ -354,7 +313,7 @@ export class MovieDetailComponent implements OnInit {
     return false;
   }
 
-  private consumePendingAction(movieId: string): void {
+  private consumePendingAction(gameId: string): void {
     const raw = sessionStorage.getItem(this.pendingActionKey);
     if (!raw) {
       return;
@@ -368,45 +327,41 @@ export class MovieDetailComponent implements OnInit {
       return;
     }
 
-    if (action.movieId !== movieId) {
+    if (action.gameId !== gameId) {
       return;
     }
 
     sessionStorage.removeItem(this.pendingActionKey);
 
-    if (action.type === 'watched' && typeof action.value === 'boolean') {
-      this.http
-        .patch<InteractionResponse>(`${this.api}/movies/${movieId}/watched`, { watched: action.value })
-        .subscribe({
-          next: (interaction) => {
-            this.applyInteraction(interaction);
-            this.interactionMessage = '';
-          },
-          error: (error: HttpErrorResponse) => {
-            if (this.handleAuthError(error, action)) {
-              return;
-            }
-            this.interactionMessage = 'No se pudo completar la accion de watched.';
+    if (action.type === 'played' && typeof action.value === 'boolean') {
+      this.http.patch<InteractionResponse>(`${this.api}/games/${gameId}/watched`, { watched: action.value }).subscribe({
+        next: (interaction) => {
+          this.applyInteraction(interaction);
+          this.interactionMessage = '';
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error, action)) {
+            return;
           }
-        });
+          this.interactionMessage = 'No se pudo completar la accion de played.';
+        }
+      });
       return;
     }
 
     if (action.type === 'wishlist' && typeof action.value === 'boolean') {
-      this.http
-        .patch<InteractionResponse>(`${this.api}/movies/${movieId}/wishlist`, { inWishlist: action.value })
-        .subscribe({
-          next: (interaction) => {
-            this.applyInteraction(interaction);
-            this.interactionMessage = '';
-          },
-          error: (error: HttpErrorResponse) => {
-            if (this.handleAuthError(error, action)) {
-              return;
-            }
-            this.interactionMessage = 'No se pudo completar la accion de wishlist.';
+      this.http.patch<InteractionResponse>(`${this.api}/games/${gameId}/wishlist`, { inWishlist: action.value }).subscribe({
+        next: (interaction) => {
+          this.applyInteraction(interaction);
+          this.interactionMessage = '';
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error, action)) {
+            return;
           }
-        });
+          this.interactionMessage = 'No se pudo completar la accion de wishlist.';
+        }
+      });
       return;
     }
 
@@ -420,17 +375,17 @@ export class MovieDetailComponent implements OnInit {
   }
 
   private patchOwnReview(payload: { rating: number; content: string }): void {
-    if (!this.movie || !this.ownReviewId) {
+    if (!this.game || !this.ownReviewId) {
       this.isSubmittingReview = false;
       return;
     }
 
-    this.http.patch(`${this.api}/movies/${this.movie._id}/reviews/${this.ownReviewId}`, payload).subscribe({
+    this.http.patch(`${this.api}/games/${this.game._id}/reviews/${this.ownReviewId}`, payload).subscribe({
       next: () => {
         this.onReviewSaved(payload.content);
       },
       error: (error: HttpErrorResponse) => {
-        if (this.handleAuthError(error, { movieId: this.movie!._id, type: 'rating', value: this.selectedRating })) {
+        if (this.handleAuthError(error, { gameId: this.game!._id, type: 'rating', value: this.selectedRating })) {
           this.isSubmittingReview = false;
           this.showReviewModal = false;
           return;
@@ -442,12 +397,12 @@ export class MovieDetailComponent implements OnInit {
   }
 
   private resolveOwnReviewIdAndPatch(payload: { rating: number; content: string }, content: string): void {
-    if (!this.movie) {
+    if (!this.game) {
       this.isSubmittingReview = false;
       return;
     }
 
-    this.http.get<MovieReviewsResponse>(`${this.api}/movies/${this.movie._id}/reviews`).subscribe({
+    this.http.get<GameReviewsResponse>(`${this.api}/games/${this.game._id}/reviews`).subscribe({
       next: (response) => {
         const userId = this.authService.getUserIdFromToken();
         const ownReview = response.data.find((review) => {
@@ -472,7 +427,7 @@ export class MovieDetailComponent implements OnInit {
         });
       },
       error: (error: HttpErrorResponse) => {
-        if (this.handleAuthError(error, { movieId: this.movie!._id, type: 'rating', value: this.selectedRating })) {
+        if (this.handleAuthError(error, { gameId: this.game!._id, type: 'rating', value: this.selectedRating })) {
           this.isSubmittingReview = false;
           this.showReviewModal = false;
           return;
@@ -484,7 +439,7 @@ export class MovieDetailComponent implements OnInit {
     });
   }
 
-  private loadOwnReviewId(movieId: string): void {
+  private loadOwnReviewId(gameId: string): void {
     if (!this.authService.isLoggedIn()) {
       this.ownReviewId = null;
       return;
@@ -496,7 +451,7 @@ export class MovieDetailComponent implements OnInit {
       return;
     }
 
-    this.http.get<MovieReviewsResponse>(`${this.api}/movies/${movieId}/reviews`).subscribe({
+    this.http.get<GameReviewsResponse>(`${this.api}/games/${gameId}/reviews`).subscribe({
       next: (response) => {
         const ownReview = response.data.find((review) => {
           const reviewUser = review.user;
@@ -521,8 +476,8 @@ export class MovieDetailComponent implements OnInit {
     this.selectedRating = 0;
     this.reviewError = '';
 
-    if (this.movie) {
-      this.loadMovieDetail(this.movie._id);
+    if (this.game) {
+      this.loadGameDetail(this.game._id);
     }
   }
 
@@ -545,5 +500,18 @@ export class MovieDetailComponent implements OnInit {
     });
 
     return true;
+  }
+
+  get platformsLabel(): string {
+    if (!this.game?.platforms) {
+      return 'N/A';
+    }
+
+    const list: string[] = [];
+    if (this.game.platforms.windows) list.push('Windows');
+    if (this.game.platforms.mac) list.push('Mac');
+    if (this.game.platforms.linux) list.push('Linux');
+
+    return list.length ? list.join(', ') : 'N/A';
   }
 }

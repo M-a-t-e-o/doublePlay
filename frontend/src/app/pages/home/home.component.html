@@ -4,7 +4,7 @@
   <main class="content">
     <header class="topbar">
       <label class="search-box">
-        <span>Search movies, games...</span>
+        <span class="material-symbols-outlined">search</span>
         <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
       </label>
       <button class="profile-button" type="button" routerLink="/profile">U</button>
@@ -70,11 +70,18 @@
         }
         <div class="cards-grid cards-grid--compact" #moviesContainer>
           @for (movie of filteredTopMovies; track trackByTitle($index, movie)) {
-            <article class="media-card">
+            <article class="media-card media-card--clickable" [routerLink]="['/movies', movie.id]">
               <img class="media-card-image" [src]="getPosterUrl(movie)" [alt]="movie.title" />
+              <div class="media-card-rating">
+                <div class="media-card-stars" [attr.aria-label]="'Rating ' + formatRating(movie.rating) + ' out of 5'">
+                  @for (star of ratingStars; track star) {
+                    <span class="media-card-star" [class.is-filled]="star <= getFilledStars(movie.rating)">★</span>
+                  }
+                </div>
+                <span class="media-card-rating-value">{{ formatRating(movie.rating) }}</span>
+              </div>
               <h3>{{ movie.title }}</h3>
               <p>{{ movie.genre }}</p>
-              <span>★ {{ movie.rating }}</span>
             </article>
           }
 
@@ -97,11 +104,18 @@
         }
         <div class="cards-grid cards-grid--compact" #gamesContainer>
           @for (game of filteredTopGames; track trackByTitle($index, game)) {
-            <article class="media-card">
-              <img class="media-card-image" [src]="getPosterUrl(game)" [alt]="game.title" />
+            <article class="media-card media-card--clickable" [routerLink]="['/games', game.id]">
+              <img class="media-card-image media-card-image--game" [src]="getPosterUrl(game)" [alt]="game.title" />
+              <div class="media-card-rating">
+                <div class="media-card-stars" [attr.aria-label]="'Rating ' + formatRating(game.rating) + ' out of 5'">
+                  @for (star of ratingStars; track star) {
+                    <span class="media-card-star" [class.is-filled]="star <= getFilledStars(game.rating)">★</span>
+                  }
+                </div>
+                <span class="media-card-rating-value">{{ formatRating(game.rating) }}</span>
+              </div>
               <h3>{{ game.title }}</h3>
               <p>{{ game.genre }}</p>
-              <span>★ {{ game.rating }}</span>
             </article>
           }
 

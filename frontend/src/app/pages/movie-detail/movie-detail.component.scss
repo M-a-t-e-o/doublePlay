@@ -158,18 +158,14 @@
 .search-box {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--line);
-  background: rgb(16 20 42 / 80%);
-  border-radius: 1rem;
-  padding: 0.65rem 0.95rem;
+  border: 1px solid rgb(55 60 96 / 70%);
+  background: rgb(18 21 45 / 75%);
+  border-radius: 0.9rem;
+  padding: 0.6rem 0.8rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.search-box span {
-  color: var(--text-soft);
-  font-size: 0.8rem;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 460px;
 }
 
 .search-box input {
@@ -178,6 +174,12 @@
   background: transparent;
   color: var(--text-main);
   font-size: 0.95rem;
+  width: 100%;
+}
+
+.search-box .material-symbols-outlined {
+  font-size: 1.1rem;
+  color: #909aca;
 }
 
 .profile-button {
@@ -202,6 +204,11 @@
     gap: 0.5rem;
     color: #9aa4d1;
     text-decoration: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
     transition: all 180ms ease;
     font-weight: 500;
 
