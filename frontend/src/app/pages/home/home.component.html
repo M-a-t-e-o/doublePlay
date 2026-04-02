@@ -56,7 +56,7 @@
         <p class="hero-copy">{{ featuredMovie.description }}</p>
         <div class="hero-actions">
           <button type="button" class="btn-primary" (click)="openTrailer(featuredMovie!)">▶ Ver trailer</button>
-          <button type="button" class="btn-soft" routerLink="/movies">More Info</button>
+          <button type="button" class="btn-soft" [routerLink]="['/movies', featuredMovie!.id]">More Info</button>
         </div>
         <div class="hero-rating">★ {{ featuredMovie.rating.toFixed(1) }}</div>
       } @else {

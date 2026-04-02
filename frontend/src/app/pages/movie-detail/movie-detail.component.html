@@ -1,0 +1,235 @@
+<div class="movie-detail-shell">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <a class="brand" routerLink="/home">
+      <span class="brand-badge">DP</span>
+      <span>doublePlay</span>
+    </a>
+
+    <nav class="menu">
+      @for (item of navItems; track trackByRoute($index, item)) {
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/home' }"
+          [class.menu-link--admin]="item.route === '/admin'"
+          class="menu-link"
+        >
+          <span class="menu-icon material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="signin-card">
+      @if (isLoggedIn) {
+        <p class="signin-title">Signed in</p>
+        <p class="signin-text">Hi {{ displayName }}, your lists are synced.</p>
+        <div class="signin-actions">
+          <a routerLink="/profile">Profile</a>
+          <button type="button" (click)="logout()">Logout</button>
+        </div>
+      } @else {
+        <p class="signin-title">Sign in</p>
+        <p class="signin-text">Click to login and sync your lists.</p>
+        <div class="signin-actions">
+          <a routerLink="/login">Login</a>
+          <a routerLink="/register">Register</a>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <header class="topbar">
+      <label class="search-box">
+        <span>Search movies, games...</span>
+        <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
+      </label>
+      <button class="profile-button" type="button" routerLink="/profile">U</button>
+    </header>
+
+    <header class="detail-header">
+      <a routerLink="/movies" class="back-link">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back
+      </a>
+    </header>
+
+    @if (isLoading) {
+      <div class="loading">
+        <p>Cargando película...</p>
+      </div>
+    } @else if (errorMessage) {
+      <div class="error">
+        <p>{{ errorMessage }}</p>
+        <a routerLink="/movies" class="btn-primary">Volver al catálogo</a>
+      </div>
+    } @else if (movie) {
+      <div class="movie-detail-container">
+        <!-- Hero Poster Section -->
+        <section class="hero-section">
+          <img class="hero-poster" [src]="getPosterUrl()" [alt]="movie.title" />
+          <div class="hero-overlay"></div>
+          @if (movie.genres && movie.genres.length > 0) {
+            <div class="hero-tags">
+              <span class="hero-pill hero-pill--movie">Movie</span>
+              @for (genre of movie.genres.slice(0, 2); track genre) {
+                <span class="hero-pill">{{ genre }}</span>
+              }
+            </div>
+          }
+          @if (movie.trailerYoutubeId) {
+            <button type="button" class="hero-play" (click)="openTrailer()" aria-label="Play trailer">
+              <span class="material-symbols-outlined">play_arrow</span>
+            </button>
+          }
+        </section>
+
+        <section class="headline-block">
+          <h1 class="movie-title">{{ movie.title }}</h1>
+          <div class="rating-block">
+            <span class="rating-stars">★ ★ ★ ★ ★</span>
+            <span class="rating-value">{{ (movie.rating?.avg ?? 0).toFixed(1) }}</span>
+            <span class="rating-meta">{{ movie.numberReviews ?? 0 }} views</span>
+          </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+          <!-- Left Column: Description and Details -->
+          <div class="info-column">
+            <!-- Description -->
+            <p class="description">{{ movie.description }}</p>
+
+            <!-- Details Grid -->
+            <section class="details-section">
+              <h2>Details</h2>
+              <div class="details-grid">
+                @if (movie.releaseDate) {
+                  <div class="detail-item">
+                    <span class="detail-label">Release Date</span>
+                    <span class="detail-value">{{ movie.releaseDate | date: 'MMM dd, yyyy' }}</span>
+                  </div>
+                }
+                @if (movie.genres && movie.genres.length > 0) {
+                  <div class="detail-item">
+                    <span class="detail-label">Genre</span>
+                    <span class="detail-value">{{ movie.genres.join(', ') }}</span>
+                  </div>
+                }
+                @if (movie.director) {
+                  <div class="detail-item">
+                    <span class="detail-label">Director</span>
+                    <span class="detail-value">{{ movie.director }}</span>
+                  </div>
+                }
+                @if (movie.runtime) {
+                  <div class="detail-item">
+                    <span class="detail-label">Runtime</span>
+                    <span class="detail-value">{{ movie.runtime }} min</span>
+                  </div>
+                }
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Right Column: Action Buttons -->
+          <div class="action-column">
+            <section class="action-panel">
+              <button type="button" class="btn-primary btn-full" (click)="openTrailer()" *ngIf="movie.trailerYoutubeId">
+                ▶ Watch Trailer
+              </button>
+              <button type="button" class="btn-secondary btn-full" (click)="toggleWishlist()" [class.active]="isInWishlist">
+                <span class="material-symbols-outlined">{{ isInWishlist ? 'bookmark' : 'bookmark_border' }}</span>
+                Add to Wishlist
+              </button>
+              <button type="button" class="btn-secondary btn-full" (click)="toggleWatched()" [class.active]="isWatched">
+                <span class="material-symbols-outlined" [class.is-filled]="isWatched">check_circle</span>
+                {{ isWatched ? 'Watched!' : 'Mark as Watched' }}
+              </button>
+
+              <div class="icon-buttons">
+                <button type="button" class="btn-icon" title="Like">
+                  <span class="material-symbols-outlined">favorite_border</span>
+                  <span>Like</span>
+                </button>
+                <button type="button" class="btn-icon" (click)="shareMovie()" title="Share">
+                  <span class="material-symbols-outlined">share</span>
+                  <span>Share</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- User Rating Section -->
+            <section class="user-rating-section">
+              <h2>Your Rating</h2>
+              <div class="star-rating">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <button
+                    type="button"
+                    class="star-btn"
+                    [class.active]="userRating >= star"
+                    (click)="setRating(star)"
+                    [attr.aria-label]="'Rate ' + star + ' stars'"
+                  >
+                    ★
+                  </button>
+                }
+              </div>
+              <p class="rating-hint">Click a star to rate this movie</p>
+              @if (interactionMessage) {
+                <p class="rating-feedback">{{ interactionMessage }}</p>
+              }
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trailer Modal -->
+      @if (showReviewModal) {
+        <div class="review-overlay" (click)="closeReviewModal()">
+          <section class="review-modal" (click)="$event.stopPropagation()">
+            <h3>Write your review</h3>
+            <p class="review-modal-subtitle">Your vote is {{ selectedRating }} star{{ selectedRating > 1 ? 's' : '' }}. Add a short text to save it.</p>
+            <textarea
+              [(ngModel)]="reviewDraft"
+              rows="5"
+              [maxlength]="reviewMaxLength"
+              placeholder="What did you think about this movie?"
+            ></textarea>
+            <p class="review-char-count" [class.limit]="reviewLength >= reviewMaxLength">{{ reviewLength }}/{{ reviewMaxLength }}</p>
+            @if (reviewError) {
+              <p class="review-modal-error">{{ reviewError }}</p>
+            }
+            <div class="review-modal-actions">
+              <button type="button" class="btn-soft" (click)="closeReviewModal()" [disabled]="isSubmittingReview">Cancel</button>
+              <button type="button" class="btn-primary" (click)="submitReview()" [disabled]="isSubmittingReview">
+                {{ isSubmittingReview ? 'Saving...' : 'Save review' }}
+              </button>
+            </div>
+          </section>
+        </div>
+      }
+
+      @if (showTrailerModal) {
+        <div class="modal-overlay" (click)="closeTrailer()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <button type="button" class="modal-close" (click)="closeTrailer()">✕</button>
+            @if (trailerUrl) {
+              <iframe
+                class="trailer-iframe"
+                [src]="trailerUrl"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            }
+          </div>
+        </div>
+      }
+    }
+  </main>
+</div>
