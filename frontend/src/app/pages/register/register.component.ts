@@ -13,6 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
   styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
+  activeLegalModal: 'terms' | 'privacy' | null = null;
   fullName = '';
   email = '';
   password = '';
@@ -82,5 +83,14 @@ export class RegisterComponent {
 
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  openLegalModal(type: 'terms' | 'privacy', event?: Event): void {
+    event?.preventDefault();
+    this.activeLegalModal = type;
+  }
+
+  closeLegalModal(): void {
+    this.activeLegalModal = null;
   }
 }

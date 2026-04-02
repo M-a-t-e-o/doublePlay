@@ -2,12 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
-
-type NavItem = {
-  label: string;
-  route: string;
-  icon: string;
-};
+import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
 
 type ActivityMonth = {
   month: string;
@@ -32,21 +27,11 @@ type LibraryItem = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, SearchDropdownComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
 export class ProfileComponent {
-  readonly navItems: NavItem[] = [
-    { label: 'Home', route: '/home', icon: 'home' },
-    { label: 'Movies', route: '/movies', icon: 'movie' },
-    { label: 'Games', route: '/games', icon: 'stadia_controller' },
-    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
-    { label: 'Social', route: '/social', icon: 'groups' },
-    { label: 'Profile', route: '/profile', icon: 'person' },
-    { label: 'Admin Panel', route: '/admin', icon: 'shield' }
-  ];
-
   readonly monthlyActivity: ActivityMonth[] = [
     { month: 'Aug', movies: 4, games: 3 },
     { month: 'Sep', movies: 6, games: 5 },
@@ -105,9 +90,5 @@ export class ProfileComponent {
       .join(', ');
 
     return `conic-gradient(${slices})`;
-  }
-
-  trackByRoute(_: number, item: NavItem): string {
-    return item.route;
   }
 }

@@ -85,7 +85,12 @@
 
       <label class="terms">
         <input type="checkbox" name="acceptedTerms" [(ngModel)]="acceptedTerms" />
-        <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+        <span>
+          I agree to the
+          <a href="#" (click)="openLegalModal('terms', $event)">Terms of Service</a>
+          and
+          <a href="#" (click)="openLegalModal('privacy', $event)">Privacy Policy</a>
+        </span>
       </label>
 
       @if (errorMessage) {
@@ -103,4 +108,37 @@
   </article>
 
   <p class="legal">Protected by industry-standard encryption</p>
+
+  @if (activeLegalModal) {
+    <div class="legal-modal-backdrop" (click)="closeLegalModal()" role="presentation">
+      <article class="legal-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header class="legal-modal-header">
+          <h2>{{ activeLegalModal === 'terms' ? 'Terms of Service' : 'Privacy Policy' }}</h2>
+          <button type="button" class="legal-modal-close" (click)="closeLegalModal()" aria-label="Close modal">✕</button>
+        </header>
+
+        <div class="legal-modal-content">
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec facilisis, mauris at pretium porta, urna
+            sapien pellentesque justo, vitae faucibus augue leo in lacus. Integer malesuada sem eu lectus sodales,
+            sed vehicula odio suscipit.
+          </p>
+          <p>
+            Curabitur luctus, ipsum at tincidunt gravida, nunc nunc sodales purus, et pharetra orci nisl ac arcu.
+            Suspendisse potenti. Phasellus tincidunt suscipit eros, at volutpat ligula pulvinar vitae. Nam luctus
+            elementum velit, ac gravida nisi sodales sed.
+          </p>
+          <p>
+            Aliquam erat volutpat. Praesent a erat nisl. Vestibulum ante ipsum primis in faucibus orci luctus et
+            ultrices posuere cubilia curae; Sed et cursus nunc. Proin volutpat malesuada lorem, vitae congue risus
+            elementum non.
+          </p>
+        </div>
+
+        <footer class="legal-modal-footer">
+          <button type="button" class="legal-modal-btn" (click)="closeLegalModal()">Close</button>
+        </footer>
+      </article>
+    </div>
+  }
 </section>

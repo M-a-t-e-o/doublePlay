@@ -4,10 +4,10 @@
   <!-- Main Content -->
   <main class="content">
     <header class="topbar">
-      <label class="search-box">
-        <span class="material-symbols-outlined">search</span>
-        <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
-      </label>
+      <app-search-dropdown
+        [placeholder]="'Search movies, games...'"
+        [label]="'Search'">
+      </app-search-dropdown>
       <button class="profile-button" type="button" routerLink="/profile">U</button>
     </header>
 

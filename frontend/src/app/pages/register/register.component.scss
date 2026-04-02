@@ -149,6 +149,10 @@ h1 {
   color: #b7a7ff;
 }
 
+.terms a:hover {
+  text-decoration: underline;
+}
+
 .form-error {
   margin: 0.8rem 0 0;
   color: #ff9ca8;
@@ -192,6 +196,78 @@ h1 {
   position: relative;
   z-index: 1;
   font-size: 0.9rem;
+}
+
+.legal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(4 7 20 / 78%);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 25;
+}
+
+.legal-modal {
+  width: min(640px, 100%);
+  border-radius: 1rem;
+  border: 1px solid rgb(71 76 128 / 56%);
+  background: linear-gradient(180deg, rgb(11 14 36 / 98%), rgb(8 11 30 / 96%));
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+  color: #d9ddf7;
+  overflow: hidden;
+}
+
+.legal-modal-header {
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgb(62 69 118 / 52%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legal-modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.legal-modal-close {
+  border: 0;
+  background: transparent;
+  color: #c7cdf0;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.legal-modal-content {
+  padding: 1rem 1.1rem;
+  max-height: min(52vh, 420px);
+  overflow: auto;
+  display: grid;
+  gap: 0.8rem;
+  color: #9fa7cf;
+  line-height: 1.55;
+}
+
+.legal-modal-content p {
+  margin: 0;
+}
+
+.legal-modal-footer {
+  padding: 0.9rem 1.1rem 1.1rem;
+  border-top: 1px solid rgb(62 69 118 / 40%);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.legal-modal-btn {
+  border: 1px solid rgb(92 101 161 / 65%);
+  background: rgb(38 44 82 / 72%);
+  color: #e7ebff;
+  border-radius: 0.65rem;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
 }
 
 @media (max-width: 560px) {

@@ -1,0 +1,52 @@
+<div class="search-dropdown-container">
+  <label class="search-box">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchInputChange($event)"
+      (keydown)="onKeyDown($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      [attr.aria-label]="label"
+      [placeholder]="placeholder"
+      autocomplete="off"
+      class="search-input"
+    />
+  </label>
+
+  @if (isOpen && searchQuery.trim().length > 0) {
+    <div class="search-dropdown">
+      @if (isSearching) {
+        <div class="search-item loading">
+          <span>Buscando...</span>
+        </div>
+      } @else if (results.length > 0) {
+        @for (result of results; track result.id) {
+          <div
+            class="search-item"
+            [class.selected]="selectedIndex === $index"
+            (click)="selectResult(result)"
+          >
+            @if (result.image) {
+              <img [src]="result.image" [alt]="result.title" class="search-item-image" />
+            }
+            <div class="search-item-content">
+              <p class="search-item-title">{{ result.title }}</p>
+              <p class="search-item-meta">
+                <span class="badge" [class]="result.type">{{ result.type === 'movie' ? 'Película' : 'Juego' }}</span>
+                @if (result.genre) {
+                  <span class="genre">{{ result.genre }}</span>
+                }
+              </p>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="search-item no-results">
+          <span>No se encontraron resultados</span>
+        </div>
+      }
+    </div>
+  }
+</div>

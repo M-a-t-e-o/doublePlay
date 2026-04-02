@@ -94,31 +94,6 @@
   margin-bottom: 1rem;
 }
 
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  width: min(460px, 100%);
-  border: 1px solid rgb(55 60 96 / 70%);
-  border-radius: 0.9rem;
-  padding: 0.6rem 0.8rem;
-  background: rgb(18 21 45 / 75%);
-
-  .material-symbols-outlined {
-    font-size: 1.1rem;
-    color: #909aca;
-  }
-
-  input {
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--text-main);
-    width: 100%;
-    font-size: 0.95rem;
-  }
-}
-
 .profile-card {
   border: 1px solid rgb(85 92 145 / 30%);
   border-radius: 1rem;
