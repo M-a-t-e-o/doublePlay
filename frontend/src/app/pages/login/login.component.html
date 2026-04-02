@@ -16,6 +16,10 @@
     <p class="subtitle">Sign in to continue your entertainment journey</p>
 
     <form class="auth-form" novalidate (ngSubmit)="onSubmitLogin()">
+      @if (infoMessage) {
+        <p class="form-error">{{ infoMessage }}</p>
+      }
+
       <label class="field-label" for="email">Email</label>
       <div class="input-wrap">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -52,7 +56,7 @@
     </form>
 
     <p class="switch-line">
-      Don't have an account? <a routerLink="/register">Sign up</a>
+      Don't have an account? <a [routerLink]="['/register']" [queryParams]="{ returnUrl: returnUrl }">Sign up</a>
     </p>
   </article>
 

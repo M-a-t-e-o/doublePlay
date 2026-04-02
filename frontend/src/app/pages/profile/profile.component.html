@@ -1,0 +1,98 @@
+<div class="profile-shell">
+  <app-sidebar></app-sidebar>
+
+  <main class="profile-content">
+    <header class="topbar">
+      <label class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" aria-label="Search" placeholder="Search movies, games..." />
+      </label>
+    </header>
+
+    <section class="profile-card">
+      <div class="profile-main">
+        <img class="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=220&h=220&fit=crop" alt="Profile avatar" />
+        <div class="profile-meta">
+          <h1>{{ profileName }} <span class="role-pill">Admin</span></h1>
+          <p class="handle">&#64;dbrooks · Member since August 2024</p>
+          <div class="quick-stats">
+            <div class="stat"><strong>3</strong><span>Movies watched</span></div>
+            <div class="stat"><strong>2</strong><span>Games played</span></div>
+            <div class="stat"><strong>3</strong><span>Wishlisted</span></div>
+            <div class="stat rating"><strong>★ 4.5</strong><span>Avg rating</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button type="button" class="chip chip-admin">
+          <span class="material-symbols-outlined">verified_user</span>
+          Admin
+        </button>
+        <button type="button" class="chip">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </button>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <article class="panel">
+        <h2><span class="material-symbols-outlined">trending_up</span>Monthly Activity</h2>
+        <div class="bar-chart">
+          @for (item of monthlyActivity; track item.month) {
+            <div class="month-group">
+              <div class="bars">
+                <span class="bar movie" [style.height.%]="(item.movies / chartMax) * 100"></span>
+                <span class="bar game" [style.height.%]="(item.games / chartMax) * 100"></span>
+              </div>
+              <span class="month">{{ item.month }}</span>
+            </div>
+          }
+        </div>
+        <div class="legend">
+          <span><i class="dot movie"></i>Movies</span>
+          <span><i class="dot game"></i>Games</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2><span class="material-symbols-outlined">trending_up</span>Genre Distribution</h2>
+        <div class="genre-block">
+          <div class="donut" [style.background]="donutGradient"></div>
+          <ul class="genre-list">
+            @for (genre of genres; track genre.label) {
+              <li>
+                <span class="swatch" [style.background]="genre.color"></span>
+                <span>{{ genre.label }}</span>
+                <strong>{{ genre.value }}%</strong>
+              </li>
+            }
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="library-panel">
+      <header>
+        <h2>Personal Library</h2>
+        <div class="chips">
+          <button type="button" class="chip chip-active">History (5)</button>
+          <button type="button" class="chip">Wishlist (3)</button>
+        </div>
+      </header>
+
+      <div class="library-list">
+        @for (item of libraryItems; track item.title) {
+          <article class="library-item">
+            <img [src]="item.image" [alt]="item.title" />
+            <div class="item-info">
+              <h3>{{ item.title }}</h3>
+              <p><span class="type">{{ item.type }}</span> · {{ item.genre }}</p>
+            </div>
+            <strong class="item-rating">★ {{ item.rating }}</strong>
+          </article>
+        }
+      </div>
+    </section>
+  </main>
+</div>

@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment'
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = environment.apiUrl
+  private readonly tokenKey = 'token'
+  private readonly userNameKey = 'userName'
 
   constructor(private http: HttpClient) {}
 
@@ -17,18 +19,42 @@ export class AuthService {
   }
 
   saveToken(token: string) {
-    localStorage.setItem('token', token)
+    localStorage.setItem(this.tokenKey, token)
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token')
+    return localStorage.getItem(this.tokenKey)
+  }
+
+  saveUserName(name: string) {
+    localStorage.setItem(this.userNameKey, name)
+  }
+
+  getUserName(): string | null {
+    return localStorage.getItem(this.userNameKey)
   }
 
   logout() {
-    localStorage.removeItem('token')
+    localStorage.removeItem(this.tokenKey)
+    localStorage.removeItem(this.userNameKey)
   }
 
   isLoggedIn(): boolean {
     return !!this.getToken()
+  }
+
+  getUserIdFromToken(): string | null {
+    const token = this.getToken()
+    if (!token) return null
+
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) return null
+
+      const payload = JSON.parse(atob(parts[1])) as { id?: string }
+      return payload.id || null
+    } catch {
+      return null
+    }
   }
 }

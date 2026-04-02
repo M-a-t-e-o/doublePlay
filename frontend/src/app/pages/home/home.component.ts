@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
+import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 
 type NavItem = {
   label: string;
@@ -55,14 +56,22 @@ type BackendGame = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, SidebarComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly api = environment.apiUrl;
   private readonly fallbackPoster = 'https://placehold.co/600x900?text=No+Image';
-  private readonly homeLimit = 8;
+  private readonly fetchLimit = 30;
+  private readonly cardWidthPx = 150;
+  private readonly gapPx = 11.2;
+  private resizeObserver: ResizeObserver | null = null;
+  visibleMoviesCount = 6;
+  visibleGamesCount = 6;
+
+  @ViewChild('moviesContainer') moviesContainer!: ElementRef;
+  @ViewChild('gamesContainer') gamesContainer!: ElementRef;
 
   readonly navItems: NavItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
@@ -86,11 +95,68 @@ export class HomeComponent implements OnInit {
   trailerVideoId: string | null = null;
   trailerUrl: SafeResourceUrl | null = null;
 
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
+  constructor(
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
+  ) {}
 
   ngOnInit(): void {
     this.loadTopMovies();
     this.loadTopGames();
+  }
+
+  ngAfterViewInit(): void {
+    this.setupResizeObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  private setupResizeObserver(): void {
+    try {
+      this.resizeObserver = new ResizeObserver(() => {
+        this.updateVisibleCounts();
+      });
+
+      if (this.moviesContainer?.nativeElement) {
+        this.resizeObserver.observe(this.moviesContainer.nativeElement);
+      }
+      if (this.gamesContainer?.nativeElement) {
+        this.resizeObserver.observe(this.gamesContainer.nativeElement);
+      }
+
+      this.updateVisibleCounts();
+    } catch (error) {
+      console.warn('ResizeObserver not supported, using static limits');
+    }
+  }
+
+  private updateVisibleCounts(): void {
+    if (this.moviesContainer?.nativeElement) {
+      const width = this.moviesContainer.nativeElement.offsetWidth;
+      this.visibleMoviesCount = this.calculateFitCount(width, this.topMovies.length);
+    }
+    if (this.gamesContainer?.nativeElement) {
+      const width = this.gamesContainer.nativeElement.offsetWidth;
+      this.visibleGamesCount = this.calculateFitCount(width, this.topGames.length);
+    }
+  }
+
+  private calculateFitCount(containerWidth: number, totalItems: number): number {
+    if (containerWidth <= 0) return Math.min(3, totalItems);
+    const fitsCount = Math.floor(containerWidth / (this.cardWidthPx + this.gapPx));
+    return Math.min(Math.max(fitsCount, 1), totalItems);
+  }
+
+  get filteredTopMovies(): MediaCard[] {
+    const safeCount = this.visibleMoviesCount > 0 ? this.visibleMoviesCount : Math.min(6, this.topMovies.length);
+    return this.topMovies.slice(0, safeCount);
+  }
+
+  get filteredTopGames(): MediaCard[] {
+    const safeCount = this.visibleGamesCount > 0 ? this.visibleGamesCount : Math.min(6, this.topGames.length);
+    return this.topGames.slice(0, safeCount);
   }
 
   private loadTopMovies(): void {
@@ -100,7 +166,7 @@ export class HomeComponent implements OnInit {
     this.http
       .get<MoviesApiResponse>(`${this.api}/movies`, {
         params: {
-          limit: String(this.homeLimit),
+          limit: String(this.fetchLimit),
           sort: 'rating_desc'
         }
       })
@@ -112,12 +178,14 @@ export class HomeComponent implements OnInit {
           this.featuredMovie = sourceMovies[0] ?? null;
           this.topMovies = sourceMovies;
           this.isLoadingMovies = false;
+          this.updateVisibleCounts();
         },
         error: () => {
           this.moviesError = 'No se pudieron cargar las peliculas.';
           this.featuredMovie = null;
           this.topMovies = [];
           this.isLoadingMovies = false;
+          this.updateVisibleCounts();
         }
       });
   }
@@ -129,7 +197,7 @@ export class HomeComponent implements OnInit {
     this.http
       .get<GamesApiResponse>(`${this.api}/games`, {
         params: {
-          limit: String(this.homeLimit),
+          limit: String(this.fetchLimit),
           sort: 'rating_desc'
         }
       })
@@ -138,18 +206,23 @@ export class HomeComponent implements OnInit {
           const games = (response.data ?? []).map((game) => this.mapGame(game));
           this.topGames = this.pickTopOrFirst(games);
           this.isLoadingGames = false;
+          this.updateVisibleCounts();
         },
         error: () => {
           this.gamesError = 'No se pudieron cargar los juegos.';
           this.topGames = [];
           this.isLoadingGames = false;
+          this.updateVisibleCounts();
         }
       });
   }
 
   private pickTopOrFirst(items: MediaCard[]): MediaCard[] {
     const ratedItems = items.filter((item) => item.rating > 0);
-    return ratedItems.length > 0 ? ratedItems.slice(0, this.homeLimit) : items.slice(0, this.homeLimit);
+    const unratedItems = items.filter((item) => item.rating === 0);
+
+    // Keep rated content first, then fill with unrated; visual cap is handled by container width.
+    return [...ratedItems, ...unratedItems];
   }
 
   private mapMovie(movie: BackendMovie): MediaCard {

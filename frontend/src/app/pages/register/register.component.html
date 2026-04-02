@@ -80,7 +80,7 @@
     </form>
 
     <p class="switch-line">
-      Already have an account? <a routerLink="/login">Sign in</a>
+      Already have an account? <a [routerLink]="['/login']" [queryParams]="{ returnUrl: returnUrl }">Sign in</a>
     </p>
   </article>
 

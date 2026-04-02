@@ -28,6 +28,11 @@ export const routes: Routes = [
 			import('./pages/movies/movies.component').then((m) => m.MoviesComponent)
 	},
 	{
+		path: 'movies/:id',
+		loadComponent: () =>
+			import('./pages/movie-detail/movie-detail.component').then((m) => m.MovieDetailComponent)
+	},
+	{
 		path: 'games',
 		loadComponent: () =>
 			import('./pages/games/games.component').then((m) => m.GamesComponent)
@@ -55,12 +60,7 @@ export const routes: Routes = [
 	{
 		path: 'profile',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Profile',
-			subtitle: 'Configuracion de usuario, preferencias y privacidad.',
-			ctaLabel: 'Volver al Inicio'
-		} satisfies PlaceholderRouteData
+			import('./pages/profile/profile.component').then((m) => m.ProfileComponent)
 	},
 	{
 		path: 'admin',

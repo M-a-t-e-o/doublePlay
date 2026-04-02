@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -17,11 +17,20 @@ export class LoginComponent {
   password = '';
   loading = false;
   errorMessage = '';
+  infoMessage = '';
+  returnUrl = '/home';
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
+    const reason = this.route.snapshot.queryParamMap.get('reason');
+    if (reason === 'auth-required') {
+      this.infoMessage = 'Necesitas iniciar sesion o registrarte para guardar watched, wishlist y reviews.';
+    }
+  }
 
   onSubmitLogin(): void {
     this.errorMessage = '';
@@ -34,9 +43,10 @@ export class LoginComponent {
     this.loading = true;
 
     this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: ({ token }) => {
+      next: ({ token, name }) => {
         this.authService.saveToken(token);
-        this.router.navigate(['/home']);
+        this.authService.saveUserName(name);
+        this.router.navigateByUrl(this.returnUrl);
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 0) {

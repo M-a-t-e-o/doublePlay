@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -20,11 +20,15 @@ export class RegisterComponent {
   acceptedTerms = false;
   loading = false;
   errorMessage = '';
+  returnUrl = '/home';
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
+  }
 
   onSubmitRegister(): void {
     this.errorMessage = '';
@@ -52,7 +56,9 @@ export class RegisterComponent {
       password: this.password
     }).subscribe({
       next: () => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/login'], {
+          queryParams: { returnUrl: this.returnUrl }
+        });
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 0) {
