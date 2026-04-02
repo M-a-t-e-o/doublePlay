@@ -17,6 +17,8 @@ export class RegisterComponent {
   email = '';
   password = '';
   confirmPassword = '';
+  showPassword = false;
+  showConfirmPassword = false;
   acceptedTerms = false;
   loading = false;
   errorMessage = '';
@@ -72,5 +74,13 @@ export class RegisterComponent {
         this.loading = false;
       }
     });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 }

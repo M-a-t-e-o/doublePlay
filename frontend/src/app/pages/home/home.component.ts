@@ -73,6 +73,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('moviesContainer') moviesContainer!: ElementRef;
   @ViewChild('gamesContainer') gamesContainer!: ElementRef;
 
+  readonly ratingStars = [1, 2, 3, 4, 5];
+
   readonly navItems: NavItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Movies', route: '/movies', icon: 'movie' },
@@ -251,6 +253,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   getPosterUrl(media: MediaCard): string {
     return media.posterUrl?.trim() || this.fallbackPoster;
   }
+
+  getFilledStars(rating: number): number {
+    return Math.max(0, Math.min(5, Math.round(rating)));
+  }
+
+  formatRating(rating: number): string {
+    return Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
+  }
+
 openTrailer(media: MediaCard): void {
     this.trailerVideoId = media.trailerYoutubeId || null;
     if (this.trailerVideoId) {

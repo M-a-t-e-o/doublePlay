@@ -38,6 +38,11 @@ export const routes: Routes = [
 			import('./pages/games/games.component').then((m) => m.GamesComponent)
 	},
 	{
+		path: 'games/:id',
+		loadComponent: () =>
+			import('./pages/game-detail/game-detail.component').then((m) => m.GameDetailComponent)
+	},
+	{
 		path: 'chatbot',
 		loadComponent: () =>
 			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),

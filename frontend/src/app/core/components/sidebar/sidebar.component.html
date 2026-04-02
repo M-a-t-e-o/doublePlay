@@ -21,8 +21,13 @@
 
   <div class="signin-card">
     @if (isLoggedIn) {
-      <p class="signin-title">Signed in</p>
-      <p class="signin-text">Hi {{ displayName }}, your lists are synced.</p>
+      <div class="user-summary">
+        <span class="user-avatar material-symbols-outlined" aria-hidden="true">account_circle</span>
+        <div class="user-meta">
+          <p class="signin-title">{{ displayName }}</p>
+          <p class="signin-text">Signed in</p>
+        </div>
+      </div>
       <div class="signin-actions">
         <a routerLink="/profile">Profile</a>
         <button type="button" (click)="logout()">Logout</button>

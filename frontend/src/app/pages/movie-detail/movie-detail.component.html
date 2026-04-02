@@ -5,17 +5,17 @@
   <main class="content">
     <header class="topbar">
       <label class="search-box">
-        <span>Search movies, games...</span>
+        <span class="material-symbols-outlined">search</span>
         <input type="text" aria-label="Search" placeholder="Try: sci-fi, coop, story rich" />
       </label>
       <button class="profile-button" type="button" routerLink="/profile">U</button>
     </header>
 
     <header class="detail-header">
-      <a routerLink="/movies" class="back-link">
+      <button type="button" class="back-link" (click)="goBack()">
         <span class="material-symbols-outlined">arrow_back</span>
         Back
-      </a>
+      </button>
     </header>
 
     @if (isLoading) {

@@ -116,8 +116,8 @@
 }
 
 .content {
-  padding: 1rem 1.3rem 1.6rem;
   display: grid;
+  padding: 0 1.2rem 1.5rem;
   gap: 1rem;
 }
 
@@ -125,22 +125,22 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  padding: 0.8rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgb(41 46 82 / 55%);
 }
 
 .search-box {
   flex: 1;
-  border: 1px solid var(--line);
-  background: rgb(16 20 42 / 80%);
-  border-radius: 1rem;
-  padding: 0.65rem 0.95rem;
+  min-width: 0;
+  border: 1px solid rgb(55 60 96 / 70%);
+  background: rgb(18 21 45 / 75%);
+  border-radius: 0.9rem;
+  padding: 0.6rem 0.8rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.search-box span {
-  color: var(--text-soft);
-  font-size: 0.8rem;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 460px;
 }
 
 .search-box input {
@@ -149,9 +149,16 @@
   background: transparent;
   color: var(--text-main);
   font-size: 0.95rem;
+  width: 100%;
+}
+
+.search-box .material-symbols-outlined {
+  font-size: 1.1rem;
+  color: #909aca;
 }
 
 .profile-button {
+  margin-left: auto;
   border: 1px solid var(--line);
   background: rgb(19 23 45 / 95%);
   color: var(--text-main);
@@ -398,6 +405,17 @@
   padding: 0.85rem;
 }
 
+.media-card--clickable {
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgb(122 97 255 / 40%);
+    background: rgb(255 255 255 / 7%);
+  }
+}
+
 .cards-grid--compact .media-card {
   flex: 0 0 150px;
   padding: 0.55rem;
@@ -417,19 +435,25 @@
   margin-bottom: 0.45rem;
 }
 
+.cards-grid--compact .media-card-image--game {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: rgb(0 0 0 / 25%);
+}
+
 .cards-grid--compact .media-card h3 {
+  margin: 0.45rem 0 0;
   font-size: 1rem;
   line-height: 1.2;
 }
 
 .cards-grid--compact .media-card p {
-  margin-top: 0.2rem;
+  margin-top: 0.18rem;
   font-size: 0.85rem;
 }
 
-.cards-grid--compact .media-card span {
-  margin-top: 0.45rem;
-  font-size: 0.9rem;
+.cards-grid--compact .media-card-rating {
+  margin-top: 0.2rem;
 }
 
 .media-card p {
@@ -437,11 +461,32 @@
   color: var(--text-soft);
 }
 
-.media-card span {
-  margin-top: 0.7rem;
-  display: inline-block;
+.media-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.media-card-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.14rem;
+}
+
+.media-card-star {
+  color: rgb(255 255 255 / 28%);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.media-card-star.is-filled {
   color: #f6d46f;
-  font-weight: 700;
+}
+
+.media-card-rating-value {
+  color: #b7b3d8;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 1024px) {

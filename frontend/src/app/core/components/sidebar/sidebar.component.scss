@@ -91,15 +91,46 @@
   border: 1px solid rgb(122 97 255 / 28%);
 }
 
+.user-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgb(122 97 255 / 22%);
+  border-radius: 0.8rem;
+  background: rgb(255 255 255 / 5%);
+}
+
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #d7dcff;
+  background: linear-gradient(135deg, rgb(111 83 255 / 35%), rgb(81 188 255 / 28%));
+  font-size: 1.25rem;
+}
+
+.user-meta {
+  min-width: 0;
+}
+
 .signin-title {
   font-weight: 700;
   margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .signin-text {
-  margin-top: 0.45rem;
+  margin-top: 0.2rem;
   color: var(--text-soft);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   margin-bottom: 0;
 }
 
