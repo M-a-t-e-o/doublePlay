@@ -36,11 +36,6 @@ app.use(cors({
 
 app.use(express.json());
 
-//mongoose.connect(process.env.MONGO_URI, {
-//  dbName: process.env.MONGO_DB_NAME || 'doubleplay'
-//})
-//  .then(() => console.log(`MongoDB connected to DB: ${mongoose.connection.name}`))
-
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('MongoDB connected');
@@ -52,12 +47,17 @@ app.get('/', (req, res) => {
   res.json({ message: 'API running' });
 });
 
-const authRoutes = require('./routes/auth');
-const movieRoutes = require('./routes/movies');
-const gameRoutes  = require('./routes/games');
-app.use('/api/auth', authRoutes);
-app.use('/api/movies', movieRoutes);
-app.use('/api/games',  gameRoutes);
+const authRoutes    = require('./routes/auth');
+const movieRoutes   = require('./routes/movies');
+const gameRoutes    = require('./routes/games');
+const friendRoutes = require('./routes/friends');
+const socialRoutes = require('./routes/social');
+
+app.use('/api/auth',    authRoutes);
+app.use('/api/movies',  movieRoutes);
+app.use('/api/games',   gameRoutes);
+app.use('/api/friends', friendRoutes);
+app.use('/api/social',  socialRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

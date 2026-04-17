@@ -30,7 +30,14 @@ const reviewSchema = new mongoose.Schema({
         type: Number,
         min: 1,
         max: 5,
-        default: null
+        default: null,
+        validate: {
+            validator: function(v) {
+            // rating solo permitido en reseñas raíz
+            return v === null || this.answerTo === null;
+            },
+            message: 'Las respuestas a reseñas no pueden tener rating'
+        }
     }
 }, { timestamps: true });
 

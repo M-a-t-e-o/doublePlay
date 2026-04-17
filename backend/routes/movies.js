@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Movie  = require('../module/movies/movie.model');
 const Interaction = require('../module/interaction/interaction.model');
 const Review = require('../module/review/review.model');
+const { mapReview, recalculateContentRating } = require('../module/review/review.utils');
 const { authRequired } = require('../middleware/auth');
 const mongoose = require('mongoose');
 
@@ -15,52 +16,6 @@ const SORT_OPTIONS = {
   'reviews_desc': { numberReviews:-1 }
 };
 
-function mapReview(reviewDoc) {
-  return {
-    id: reviewDoc._id,
-    user: reviewDoc.user,
-    content: reviewDoc.content,
-    rating: reviewDoc.rating,
-    answerTo: reviewDoc.answerTo,
-    createdAt: reviewDoc.createdAt,
-    updatedAt: reviewDoc.updatedAt
-  };
-}
-
-async function recalculateMovieRating(movieId) {
-  const targetId = new mongoose.Types.ObjectId(movieId);
-  const stats = await Review.aggregate([
-    {
-      $match: {
-        contentType: 'movie',
-        contentId: targetId,
-        answerTo: null,
-        rating: { $ne: null }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        avg: { $avg: '$rating' },
-        count: { $sum: 1 }
-      }
-    }
-  ]);
-
-  const avg = stats[0] ? Number(stats[0].avg.toFixed(2)) : 0;
-  const count = stats[0] ? stats[0].count : 0;
-  const numberReviews = await Review.countDocuments({
-    contentType: 'movie',
-    contentId: targetId,
-    answerTo: null
-  });
-
-  await Movie.findByIdAndUpdate(movieId, {
-    'rating.avg': avg,
-    'rating.count': count,
-    numberReviews
-  });
-}
 
 // ── GET /api/movies ───────────────────────────────────────────
 // Query params:
@@ -266,7 +221,7 @@ router.post('/:id/reviews', authRequired, async (req, res) => {
       rating
     });
 
-    await recalculateMovieRating(movie._id);
+    await recalculateContentRating('movie', movie._id, Movie);
 
     const populated = await Review.findById(review._id).populate('user', 'name');
     return res.status(201).json(mapReview(populated));
@@ -386,7 +341,7 @@ router.patch('/:id/reviews/:reviewId', authRequired, async (req, res) => {
     await review.save();
 
     if (isRoot) {
-      await recalculateMovieRating(movie._id);
+      await recalculateContentRating('movie', movie._id, Movie);
     }
 
     const populated = await Review.findById(review._id).populate('user', 'name');
@@ -436,7 +391,7 @@ router.delete('/:id/reviews/:reviewId', authRequired, async (req, res) => {
           { answerTo: review._id }
         ]
       });
-      await recalculateMovieRating(movie._id);
+      await recalculateContentRating('movie', movie._id, Movie);
     } else {
       await review.deleteOne();
     }
