@@ -105,12 +105,10 @@
   width: 2rem;
   height: 2rem;
   border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #d7dcff;
+  display: block;
+  object-fit: cover;
   background: linear-gradient(135deg, rgb(111 83 255 / 35%), rgb(81 188 255 / 28%));
-  font-size: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 18%);
 }
 
 .user-meta {

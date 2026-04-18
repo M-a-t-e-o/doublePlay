@@ -22,7 +22,11 @@
   <div class="signin-card">
     @if (isLoggedIn) {
       <div class="user-summary">
-        <span class="user-avatar material-symbols-outlined" aria-hidden="true">account_circle</span>
+        <img
+          class="user-avatar"
+          [src]="currentUserAvatarUrl"
+          [alt]="displayName + ' avatar'"
+          (error)="handleCurrentUserAvatarError($event)" />
         <div class="user-meta">
           <p class="signin-title">{{ displayName }}</p>
           <p class="signin-text">Signed in</p>

@@ -55,12 +55,7 @@ export const routes: Routes = [
 	{
 		path: 'social',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Social',
-			subtitle: 'Actividad de amigos, comentarios y listas compartidas.',
-			ctaLabel: 'Volver al Inicio'
-		} satisfies PlaceholderRouteData
+			import('./pages/social/social.component').then((m) => m.SocialComponent)
 	},
 	{
 		path: 'profile',
