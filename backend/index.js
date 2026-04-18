@@ -52,12 +52,14 @@ const movieRoutes   = require('./routes/movies');
 const gameRoutes    = require('./routes/games');
 const friendRoutes = require('./routes/friends');
 const socialRoutes = require('./routes/social');
+const profileRoutes = require('./routes/profile');
 
 app.use('/api/auth',    authRoutes);
 app.use('/api/movies',  movieRoutes);
 app.use('/api/games',   gameRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/social',  socialRoutes);
+app.use('/api/profile', profileRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
