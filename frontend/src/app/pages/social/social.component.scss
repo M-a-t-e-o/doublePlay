@@ -47,8 +47,14 @@
 }
 
 .hero-block h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
   line-height: 1.06;
+  background: linear-gradient(135deg, #51bcff 0%, #6f53ff 75%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-block p {
@@ -144,7 +150,7 @@
 }
 
 .event-action--watched {
-  color: #ff9f3b;
+  color: #34d19f;
 }
 
 .event-action--wishlisted {
@@ -177,8 +183,16 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  color: #42c2ff;
+  color: #9eb4ff;
   font-weight: 700;
+}
+
+.type-line--movie {
+  color: #ff9f3b;
+}
+
+.type-line--game {
+  color: #42c2ff;
 }
 
 .type-line .material-symbols-outlined {
@@ -385,7 +399,7 @@
 }
 
 .friend-name {
-  font-size: 1.95rem;
+  font-size: 1.15rem;
   font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
   font-weight: 700;
   line-height: 1.1;
@@ -455,7 +469,7 @@
 
 @media (max-width: 1100px) {
   .friend-name {
-    font-size: 1.6rem;
+    font-size: 1.1rem;
   }
 }
 

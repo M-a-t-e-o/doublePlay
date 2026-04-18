@@ -80,7 +80,10 @@
                   <img class="cover" [src]="event.content?.cover" [alt]="event.content?.title || 'cover'" />
                 }
                 <div class="meta">
-                  <p class="type-line">
+                  <p
+                    class="type-line"
+                    [class.type-line--movie]="event.content?.type === 'movie'"
+                    [class.type-line--game]="event.content?.type === 'game'">
                     <span class="material-symbols-outlined">sports_esports</span>
                     {{ getContentLabel(event.content) }}
                   </p>
