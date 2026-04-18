@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const User = require('../module/user/user.model');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 // Configure multer for profile pictures
 const upload = multer({
@@ -23,7 +24,58 @@ function isStrongPassword(password) {
   return typeof password === 'string' && PASSWORD_REGEX.test(password);
 }
 
+
 // Register
+/**
+ * @swagger
+ *   /register:
+ *     post:
+ *       summary: Registrar un nuevo usuario
+ *       tags: [Users]
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - email
+ *                 - password
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   example: "Juan Pérez"
+ *                 username:
+ *                   type: string
+ *                   example: "juanp88"
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                   example: "usuario@ejemplo.com"
+ *                 password:
+ *                   type: string
+ *                   format: password
+ *                   example: "P@ssword123"
+ *                   description: Mínimo 8 caracteres, una mayúscula, un número y un símbolo.
+ *       responses:
+ *         201:
+ *           description: Usuario creado exitosamente
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     example: "User created"
+ *                   userId:
+ *                     type: string
+ *                     example: "60d5ecb54f421b2d1c8e4e1a"
+ *         400:
+ *           description: Error de validación (campos faltantes, contraseña débil o email en uso)
+ *         500:
+ *           description: Error interno del servidor
+ */
 router.post('/register', async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
@@ -51,6 +103,57 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Iniciar sesión de usuario
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "usuario@ejemplo.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: "P@ssword123"
+ *     responses:
+ *       200:
+ *         description: Login exitoso, devuelve el token JWT
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 name:
+ *                   type: string
+ *                   example: "Juan Pérez"
+ *       400:
+ *         description: Credenciales inválidas (email o contraseña incorrectos)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid credentials"
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -70,6 +173,53 @@ router.post('/login', async (req, res) => {
 });
 
 // Change password
+/**
+ * @swagger
+ * /change-password:
+ *   post:
+ *     summary: Cambiar la contraseña del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: "OldPassword123!"
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: "NewPassword456!"
+ *                 description: Mínimo 8 caracteres, una mayúscula, un número y un símbolo.
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Password updated successfully"
+ *       400:
+ *         description: Error de validación (contraseña débil, campos faltantes o contraseña actual incorrecta)
+ *       401:
+ *         description: No autorizado (Token faltante, inválido o expirado)
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.post('/change-password', async (req, res) => {
   try {
     const authHeader = req.headers.authorization || '';
@@ -115,6 +265,53 @@ router.post('/change-password', async (req, res) => {
 });
 
 // Upload or update profile picture
+/**
+ * @swagger
+ * /profile-picture:
+ *   post:
+ *     summary: Actualizar la foto de perfil del usuario
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               profilePicture:
+ *                 type: string
+ *                 format: binary
+ *                 description: El archivo de imagen (Máximo 5MB)
+ *     responses:
+ *       200:
+ *         description: Imagen de perfil actualizada con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile picture updated successfully"
+ *       400:
+ *         description: Error en el archivo (no se envió archivo, formato inválido o demasiado grande)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "File size exceeds 5MB limit"
+ *       401:
+ *         description: No autorizado (Token faltante o inválido)
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.post('/profile-picture', upload.single('profilePicture'), async (req, res) => {
   try {
     const authHeader = req.headers.authorization || '';
@@ -151,6 +348,41 @@ router.post('/profile-picture', upload.single('profilePicture'), async (req, res
 });
 
 // Get profile picture by user ID
+/**
+ * @swagger
+ * /profile-picture/{userId}:
+ *   get:
+ *     summary: Obtener la foto de perfil de un usuario
+ *     tags: [Users]
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: ID único del usuario
+ *         schema:
+ *           type: string
+ *           example: "60d5ecb54f421b2d1c8e4e1a"
+ *     responses:
+ *       200:
+ *         description: Imagen de perfil en formato binario
+ *         content:
+ *           image/*:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Usuario no encontrado o el usuario no tiene foto de perfil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile picture not found"
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.get('/profile-picture/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -170,6 +402,48 @@ router.get('/profile-picture/:userId', async (req, res) => {
 });
 
 // Delete profile picture
+/**
+ * @swagger
+ * /profile-picture:
+ *   delete:
+ *     summary: Eliminar la foto de perfil del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Foto de perfil eliminada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile picture deleted successfully"
+ *       401:
+ *         description: No autorizado (Token faltante o inválido)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: Usuario no encontrado o no tiene foto de perfil para eliminar
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Profile picture not found"
+ *       500:
+ *         description: Error interno del servidor
+ */
 router.delete('/profile-picture', async (req, res) => {
   try {
     const authHeader = req.headers.authorization || '';
