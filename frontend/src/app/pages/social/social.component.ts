@@ -254,7 +254,7 @@ export class SocialComponent implements OnInit {
   removeFriend(userId: string): void {
     this.socialService.removeFriend(userId).subscribe({
       next: () => {
-        this.requestActionMessage = 'Amigo eliminado.';
+        this.requestActionMessage = 'Friend removed.';
         this.loadFriendData();
         this.loadFeed(1, true);
       },
