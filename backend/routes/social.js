@@ -109,8 +109,15 @@ router.get('/feed', async (req, res) => {
 
     // ── 5. Populate usuarios (solo los de esta página) ────────────
     const uniqueUserIds = [...new Set(paginated.map(e => String(e.userId)))];
-    const users = await User.find({ _id: { $in: uniqueUserIds } }).select('name');
-    const userMap = new Map(users.map(u => [String(u._id), { _id: u._id, name: u.name }]));
+    const users = await User.find({ _id: { $in: uniqueUserIds } }).select('name profilePicture');
+    const userMap = new Map(users.map(u => [
+      String(u._id),
+      {
+        _id: u._id,
+        name: u.name,
+        hasProfilePicture: Boolean(u.profilePicture && u.profilePicture.data)
+      }
+    ]));
 
     // ── 6. Populate contenido (2 queries máximo, agrupando por tipo) ─
     const movieIds = [...new Set(

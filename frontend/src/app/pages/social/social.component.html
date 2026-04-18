@@ -1,0 +1,227 @@
+<div class="social-shell">
+  <app-sidebar></app-sidebar>
+
+  <main class="social-content">
+    <header class="topbar">
+      <app-search-dropdown
+        [placeholder]="'Search movies, games...'"
+        [label]="'Search'">
+      </app-search-dropdown>
+      <button class="profile-button" type="button" routerLink="/profile" aria-label="Go to profile">
+        <img
+          class="profile-button-image"
+          [src]="currentUserAvatarUrl"
+          [alt]="'Profile avatar'"
+          (error)="handleCurrentUserAvatarError($event)" />
+      </button>
+    </header>
+
+    <section class="hero-block">
+      <h1>Social</h1>
+      <p>See what your friends are watching and playing</p>
+
+      <div class="tabs" role="tablist" aria-label="Social sections">
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.is-active]="activeTab === 'feed'"
+          [attr.aria-selected]="activeTab === 'feed'"
+          (click)="setTab('feed')">
+          Activity Feed
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.is-active]="activeTab === 'friends'"
+          [attr.aria-selected]="activeTab === 'friends'"
+          (click)="setTab('friends')">
+          Friends
+        </button>
+      </div>
+    </section>
+
+    @if (activeTab === 'feed') {
+      <section class="feed-list" aria-live="polite">
+        @if (feedError) {
+          <p class="error-banner">{{ feedError }}</p>
+        }
+
+        @if (!isLoadingFeed && !feedError && feed.length === 0) {
+          <article class="empty-card">
+            <h2>No activity yet</h2>
+            <p>When your friends watch, wishlist or review content, it will appear here.</p>
+          </article>
+        }
+
+        @for (event of feed; track trackFeedEvent($index, event)) {
+          <article class="feed-card">
+            <div class="avatar">
+              <img
+                class="avatar-image"
+                [src]="getFeedAvatarUrl(event)"
+                [alt]="event.user?.name || 'User avatar'"
+                (error)="handleFeedAvatarError($event, event.user?.name, event.user?._id)" />
+            </div>
+
+            <div class="feed-body">
+              <p class="headline">
+                <strong>{{ event.user?.name || 'Unknown user' }}</strong>
+                <span class="event-action" [class]="'event-action event-action--' + event.type">
+                  <span class="material-symbols-outlined">{{ getActionIcon(event.type) }}</span>
+                  {{ getActionLabel(event.type) }}
+                </span>
+                <span>{{ event.content?.title || 'Unknown title' }}</span>
+              </p>
+
+              <div class="item-row">
+                @if (event.content?.cover) {
+                  <img class="cover" [src]="event.content?.cover" [alt]="event.content?.title || 'cover'" />
+                }
+                <div class="meta">
+                  <p class="type-line">
+                    <span class="material-symbols-outlined">sports_esports</span>
+                    {{ getContentLabel(event.content) }}
+                  </p>
+                  @if (event.type === 'reviewed') {
+                    <p class="stars" [attr.aria-label]="'Rating ' + (event.rating || 0) + ' out of 5'">
+                      @for (star of ratingStars; track star) {
+                        <span [class.is-filled]="star <= getFilledStars(event.rating)">★</span>
+                      }
+                    </p>
+                  }
+                  @if (event.reviewContent) {
+                    <p class="review-content">"{{ event.reviewContent }}"</p>
+                  }
+                  <p class="time">{{ formatRelativeDate(event.date) }}</p>
+                </div>
+              </div>
+            </div>
+
+            @if (event.content?._id && event.content?.type === 'movie') {
+              <a class="detail-link" [routerLink]="['/movies', event.content!._id]">Open</a>
+            }
+            @if (event.content?._id && event.content?.type === 'game') {
+              <a class="detail-link" [routerLink]="['/games', event.content!._id]">Open</a>
+            }
+          </article>
+        }
+
+        @if (isLoadingFeed) {
+          <article class="empty-card loading">
+            <p>Loading social activity...</p>
+          </article>
+        }
+
+        @if (!isLoadingFeed && pagination.hasNext) {
+          <button class="load-more" type="button" (click)="loadMoreFeed()">
+            Load more
+          </button>
+        }
+      </section>
+    }
+
+    @if (activeTab === 'friends') {
+      <section class="friends-view" aria-live="polite">
+        <label class="friends-search">
+          <span class="material-symbols-outlined">search</span>
+          <input
+            type="text"
+            [(ngModel)]="friendSearchQuery"
+            placeholder="Search friends..."
+            aria-label="Search friends" />
+        </label>
+
+        <div class="add-friend-card">
+          <button type="button" class="add-friend-trigger" (click)="toggleAddFriend()">
+            <span class="material-symbols-outlined">person_add</span>
+            Add a new friend
+          </button>
+
+          @if (isAddFriendOpen) {
+            <div class="add-friend-form">
+              <input
+                type="text"
+                [(ngModel)]="requestUserId"
+                placeholder="Paste user id"
+                aria-label="User id" />
+              <button type="button" (click)="sendFriendRequest()">Send</button>
+            </div>
+          }
+
+          @if (requestActionMessage) {
+            <p class="action-message">{{ requestActionMessage }}</p>
+          }
+        </div>
+
+        @if (friendsError) {
+          <p class="error-banner">{{ friendsError }}</p>
+        }
+
+        <div class="friends-list-modern">
+          @for (friend of filteredFriends; track trackFriend($index, friend)) {
+            <article class="friend-card-modern">
+              <div class="friend-avatar-wrap">
+                <img
+                  class="friend-avatar"
+                  [src]="'https://api.dicebear.com/9.x/adventurer/svg?seed=' + getFriendAvatarSeed(friend)"
+                  [alt]="friend.user.name" />
+              </div>
+
+              <div class="friend-main">
+                <p class="friend-name">{{ friend.user.name }}</p>
+              </div>
+
+              <button type="button" class="remove-friend" (click)="removeFriend(friend.user._id)">Remove</button>
+            </article>
+          }
+
+          @if (!isLoadingFriends && filteredFriends.length === 0 && !friendsError) {
+            <article class="empty-card">
+              <h2>No friends found</h2>
+              <p>Try another search or send a new request.</p>
+            </article>
+          }
+        </div>
+
+        @if (!isLoadingFriends && (receivedRequests.length > 0 || sentRequests.length > 0)) {
+          <section class="requests-block">
+            <h3>Requests</h3>
+
+            @if (receivedRequests.length > 0) {
+              <div class="request-row-wrap">
+                @for (request of receivedRequests; track trackRequest($index, request)) {
+                  <article class="request-row">
+                    <div>
+                      <p class="name">{{ request.sender.name }}</p>
+                      <p class="subtitle">wants to be your friend</p>
+                    </div>
+                    <div class="actions">
+                      <button type="button" (click)="acceptRequest(request._id)">Accept</button>
+                      <button type="button" class="danger" (click)="rejectOrCancelRequest(request._id)">Reject</button>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+
+            @if (sentRequests.length > 0) {
+              <div class="request-row-wrap">
+                @for (request of sentRequests; track trackRequest($index, request)) {
+                  <article class="request-row">
+                    <div>
+                      <p class="name">{{ request.receiver.name }}</p>
+                      <p class="subtitle">request sent</p>
+                    </div>
+                    <button type="button" class="danger" (click)="rejectOrCancelRequest(request._id)">Cancel</button>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        }
+      </section>
+    }
+  </main>
+</div>
