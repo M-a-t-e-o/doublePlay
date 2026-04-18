@@ -479,6 +479,12 @@
   }
 }
 
+@media (max-width: 900px) {
+  .topbar {
+    display: none;
+  }
+}
+
 @media (max-width: 760px) {
   .content {
     padding: 0.85rem;
@@ -490,9 +496,7 @@
   }
 
   .profile-button {
-    width: 100%;
-    border-radius: 0.85rem;
-    height: 2.5rem;
+    display: none;
   }
 
   .pair-grid,

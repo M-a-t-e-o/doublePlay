@@ -478,6 +478,10 @@
     grid-template-columns: 1fr;
   }
 
+  .profile-button {
+    display: none;
+  }
+
   .social-content {
     padding: 0 1rem 1rem;
   }
@@ -501,10 +505,19 @@
 
   .friend-card-modern {
     grid-template-columns: auto 1fr;
+    grid-auto-rows: min-content;
+    align-items: start;
+    align-content: start;
+  }
+
+  .friend-avatar-wrap,
+  .friend-main {
+    align-self: start;
   }
 
   .remove-friend {
     grid-column: 2;
     justify-self: start;
+    align-self: start;
   }
 }

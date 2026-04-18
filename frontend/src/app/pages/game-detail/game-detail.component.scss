@@ -456,11 +456,14 @@
     grid-template-columns: 1fr;
   }
 
+  .topbar {
+    display: none;
+  }
+
   .content {
     overflow: visible;
   }
 
-  .topbar,
   .detail-header,
   .game-detail-container {
     padding-left: 1rem;

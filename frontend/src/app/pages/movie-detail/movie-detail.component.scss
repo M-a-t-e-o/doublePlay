@@ -776,6 +776,26 @@
   }
 }
 
+@media (max-width: 900px) {
+  .movie-detail-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    display: none;
+  }
+
+  .content {
+    overflow: visible;
+  }
+
+  .detail-header,
+  .movie-detail-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

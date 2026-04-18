@@ -6,6 +6,28 @@
   --accent-light: #51bcff;
 }
 
+.mobile-menu-toggle,
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
+.mobile-topbar {
+  display: none;
+}
+
+.mobile-topbar-spacer {
+  display: none;
+}
+
+.mobile-brand {
+  color: var(--text-main);
+  text-decoration: none;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .sidebar {
   border-right: 1px solid var(--line);
   padding: 1.2rem 1rem;
@@ -159,4 +181,100 @@
 
 .signin-actions button {
   font-family: inherit;
+}
+
+@media (max-width: 900px) {
+  .mobile-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.8rem;
+    min-height: 3.75rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1003;
+    border-bottom: 1px solid rgb(69 76 125 / 42%);
+    background: linear-gradient(180deg, rgb(8 10 24 / 98%), rgb(7 9 21 / 95%));
+  }
+
+  .mobile-topbar-spacer {
+    display: block;
+    height: 3.75rem;
+  }
+
+  .mobile-menu-toggle {
+    grid-column: 1;
+    justify-self: start;
+    width: 2.35rem;
+    height: 2.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(122 97 255 / 55%);
+    border-radius: 0.7rem;
+    color: var(--text-main);
+    background: linear-gradient(140deg, rgb(18 21 44 / 95%), rgb(12 15 33 / 92%));
+    box-shadow: 0 6px 18px rgb(8 10 22 / 45%);
+    cursor: pointer;
+  }
+
+  .mobile-menu-toggle.is-open {
+    background: linear-gradient(140deg, rgb(99 53 207 / 94%), rgb(63 27 160 / 92%));
+    border-color: rgb(194 171 255 / 65%);
+  }
+
+  .mobile-menu-toggle .material-symbols-outlined {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  .mobile-brand {
+    grid-column: 2;
+    justify-self: center;
+    font-size: 1.14rem;
+  }
+
+  .mobile-brand .brand-logo {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .mobile-sidebar-backdrop {
+    position: fixed;
+    top: 3.75rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: rgb(3 5 14 / 58%);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 3.75rem;
+    left: 0;
+    width: min(84vw, 320px);
+    height: calc(100dvh - 3.75rem);
+    transform: translateX(-104%);
+    transition: transform 220ms ease;
+    z-index: 1001;
+    border-right: 1px solid rgb(122 97 255 / 42%);
+    box-shadow: 14px 0 38px rgb(2 5 18 / 58%);
+  }
+
+  .sidebar > .brand {
+    display: none;
+  }
+
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../../environments/environment';
@@ -19,6 +19,9 @@ type NavItem = {
 })
 export class SidebarComponent {
   private readonly api = environment.apiUrl;
+  private readonly mobileBreakpoint = 900;
+
+  isMobileMenuOpen = false;
 
   readonly navItems: NavItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
@@ -63,10 +66,30 @@ export class SidebarComponent {
   }
 
   logout(): void {
+    this.closeMobileMenu();
     this.authService.logout();
   }
 
   trackByRoute(_: number, item: NavItem): string {
     return item.route;
+  }
+
+  get isMobileViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= this.mobileBreakpoint;
+  }
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (!this.isMobileViewport) {
+      this.closeMobileMenu();
+    }
   }
 }
