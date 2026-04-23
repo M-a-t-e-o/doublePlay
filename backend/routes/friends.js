@@ -13,6 +13,10 @@ function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
  * Find an existing friendship document between two users regardless of
  * who is sender and who is receiver.
@@ -25,6 +29,64 @@ function findFriendship(userA, userB) {
     ]
   });
 }
+
+// ─── Search users by name to send friend request ────────────────────────────
+// GET /api/friends/search?name=ser
+router.get('/search', async (req, res) => {
+  try {
+    const currentUserId = req.userId;
+    const rawName = req.query.name;
+
+    if (!rawName || typeof rawName !== 'string' || !rawName.trim()) {
+      return res.status(400).json({ message: 'Query parameter "name" is required' });
+    }
+
+    const search = rawName.trim();
+
+    if (search.length < 2) {
+      return res.status(400).json({ message: 'Search must contain at least 2 characters' });
+    }
+
+    const escapedSearch = escapeRegex(search);
+
+    const relatedFriendships = await Friendship.find({
+      $or: [
+        { sender: currentUserId },
+        { receiver: currentUserId }
+      ],
+      status: { $in: ['pending', 'accepted'] }
+    }).select('sender receiver');
+
+    const excludedUserIds = new Set([String(currentUserId)]);
+
+    for (const friendship of relatedFriendships) {
+      const senderId = String(friendship.sender);
+      const receiverId = String(friendship.receiver);
+
+      if (senderId !== String(currentUserId)) excludedUserIds.add(senderId);
+      if (receiverId !== String(currentUserId)) excludedUserIds.add(receiverId);
+    }
+
+    const users = await User.find({
+      _id: { $nin: Array.from(excludedUserIds) },
+      name: { $regex: escapedSearch, $options: 'i' }
+    })
+      .select('_id name profilePicture')
+      .sort({ name: 1 })
+      .limit(20);
+
+    const result = users.map(user => ({
+      id: user._id,
+      name: user.name,
+      profilePicture: user.profilePicture
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error('Error searching users:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // ─── Send friend request ─────────────────────────────────────────────────────
 // POST /api/friends/request/:userId
