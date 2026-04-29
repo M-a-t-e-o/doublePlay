@@ -298,10 +298,19 @@ router.get('/me', async (req, res) => {
   try {
     const userId = req.userId;
 
-    const [user, watchedMoviesCount, gamesPlayedCount, monthlyDistribution, movieGenreDistribution, gameGenreDistribution] = await Promise.all([
+    const [
+      user,
+      watchedMoviesCount,
+      gamesPlayedCount,
+      totalWishlistedCount,
+      monthlyDistribution,
+      movieGenreDistribution,
+      gameGenreDistribution
+    ] = await Promise.all([
       User.findById(userId).select('name profilePicture').lean(),
       Interaction.countDocuments({ user: userId, contentType: 'movie', watched: true }),
       Interaction.countDocuments({ user: userId, contentType: 'game', watched: true }),
+      Interaction.countDocuments({ user: userId, inWishlist: true }),
       getMonthlyDistribution(userId),
       getGenreDistribution(userId, 'movie', Movie),
       getGenreDistribution(userId, 'game', Game)
@@ -319,7 +328,8 @@ router.get('/me', async (req, res) => {
       },
       counts: {
         watchedMovies: watchedMoviesCount,
-        gamesPlayed: gamesPlayedCount
+        gamesPlayed: gamesPlayedCount,
+        totalWishlisted: totalWishlistedCount
       },
       monthlyDistribution,
       movieGenreDistribution,
