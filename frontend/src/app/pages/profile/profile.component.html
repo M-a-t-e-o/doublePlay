@@ -2,6 +2,11 @@
   <app-sidebar></app-sidebar>
 
   <main class="profile-content">
+    @if (showToast) {
+      <div class="toast" [class.toast-error]="toastType === 'error'">
+        <span>{{ toastMessage }}</span>
+      </div>
+    }
     <header class="topbar">
       <app-search-dropdown
         [placeholder]="'Search movies, games...'"
@@ -11,43 +16,63 @@
 
     <section class="profile-card">
       <div class="profile-main">
-        <img class="avatar" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=220&h=220&fit=crop" alt="Profile avatar" />
+        <div class="avatar-wrapper">
+          <img
+            class="avatar"
+            [src]="profileAvatarUrl"
+            [alt]="profileName + ' avatar'"
+            (error)="handleProfileAvatarError($event)" />
+          <button
+            type="button"
+            class="avatar-edit-btn"
+            (click)="triggerFileUpload()"
+            title="Change profile picture">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <input
+            type="file"
+            #fileInput
+            hidden
+            accept=".jpg,.jpeg,.png,.gif,.webp"
+            (change)="onProfilePictureSelected($event)" />
+        </div>
         <div class="profile-meta">
-          <h1>{{ profileName }} <span class="role-pill">Admin</span></h1>
-          <p class="handle">&#64;dbrooks · Member since August 2024</p>
+          <h1>{{ profileName }}</h1>
+          <p class="handle">&#64;{{ profileHandle }} · {{ memberSinceLabel }}</p>
           <div class="quick-stats">
-            <div class="stat"><strong>3</strong><span>Movies watched</span></div>
-            <div class="stat"><strong>2</strong><span>Games played</span></div>
-            <div class="stat"><strong>3</strong><span>Wishlisted</span></div>
-            <div class="stat rating"><strong>★ 4.5</strong><span>Avg rating</span></div>
+            <div class="stat"><strong>{{ movieCount }}</strong><span>Movies watched</span></div>
+            <div class="stat"><strong>{{ gamesCount }}</strong><span>Games played</span></div>
+            <div class="stat"><strong>{{ wishlistCount }}</strong><span>Wishlisted</span></div>
           </div>
         </div>
       </div>
-      <div class="profile-actions">
-        <button type="button" class="chip chip-admin">
-          <span class="material-symbols-outlined">verified_user</span>
-          Admin
-        </button>
-        <button type="button" class="chip">
-          <span class="material-symbols-outlined">settings</span>
-          Settings
-        </button>
-      </div>
     </section>
+
+    <!-- Upload modal for drag-and-drop -->
+    <div class="upload-modal" *ngIf="showUploadModal">
+      <div class="modal-backdrop" (click)="closeUploadModal()"></div>
+      <div class="upload-dialog" (click)="$event.stopPropagation()">
+        <button type="button" class="close-btn" (click)="closeUploadModal()">✕</button>
+        <h3>Change profile picture</h3>
+        <div
+          class="drop-area"
+          [class.drag-over]="isDragOver"
+          (dragenter)="onDragOver($event)"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)">
+          <p *ngIf="!isUploadingProfilePicture">Drag & drop an image here, or click <button type="button" class="link-btn" (click)="openFileSelector()">select</button></p>
+          <p *ngIf="isUploadingProfilePicture">Uploading...</p>
+          <p class="formats">Accepted formats: JPEG, PNG, GIF, WebP — Max 5MB</p>
+        </div>
+      </div>
+    </div>
 
     <section class="dashboard-grid">
       <article class="panel">
         <h2><span class="material-symbols-outlined">trending_up</span>Monthly Activity</h2>
         <div class="bar-chart">
-          @for (item of monthlyActivity; track item.month) {
-            <div class="month-group">
-              <div class="bars">
-                <span class="bar movie" [style.height.%]="(item.movies / chartMax) * 100"></span>
-                <span class="bar game" [style.height.%]="(item.games / chartMax) * 100"></span>
-              </div>
-              <span class="month">{{ item.month }}</span>
-            </div>
-          }
+          <canvas #activityChart></canvas>
         </div>
         <div class="legend">
           <span><i class="dot movie"></i>Movies</span>
@@ -55,16 +80,48 @@
         </div>
       </article>
 
-      <article class="panel">
+      <article class="panel genre-panel">
         <h2><span class="material-symbols-outlined">trending_up</span>Genre Distribution</h2>
+        <div class="genre-filters">
+          <button 
+            type="button" 
+            class="chip" 
+            [class.chip-active]="genreFilter === 'all'"
+            (click)="switchGenreFilter('all')">
+            All
+          </button>
+          <button 
+            type="button" 
+            class="chip"
+            [class.chip-active]="genreFilter === 'movies'"
+            (click)="switchGenreFilter('movies')">
+            Movies
+          </button>
+          <button 
+            type="button" 
+            class="chip"
+            [class.chip-active]="genreFilter === 'games'"
+            (click)="switchGenreFilter('games')">
+            Games
+          </button>
+        </div>
         <div class="genre-block">
-          <div class="donut" [style.background]="donutGradient"></div>
-          <ul class="genre-list">
+          <div class="donut-chart">
+            <canvas #genreChart></canvas>
+          </div>
+          <ul class="genre-list" [class.multi-column]="genres.length > 8">
             @for (genre of genres; track genre.label) {
               <li>
                 <span class="swatch" [style.background]="genre.color"></span>
                 <span>{{ genre.label }}</span>
-                <strong>{{ genre.value }}%</strong>
+                <strong>{{ genre.value | number:'1.0-1' }}%</strong>
+              </li>
+            }
+            @if (genres.length === 0) {
+              <li>
+                <span class="swatch" style="background: #667191"></span>
+                <span>No data</span>
+                <strong>0%</strong>
               </li>
             }
           </ul>
@@ -76,10 +133,46 @@
       <header>
         <h2>Personal Library</h2>
         <div class="chips">
-          <button type="button" class="chip chip-active">History (5)</button>
-          <button type="button" class="chip">Wishlist (3)</button>
+          <button 
+            type="button" 
+            class="chip" 
+            [class.chip-active]="activeLibraryTab === 'history'"
+            (click)="switchLibraryTab('history')">
+            History ({{ movieCount + gamesCount }})
+          </button>
+          <button 
+            type="button" 
+            class="chip"
+            [class.chip-active]="activeLibraryTab === 'wishlist'"
+            (click)="switchLibraryTab('wishlist')">
+            Wishlist ({{ wishlistCount }})
+          </button>
         </div>
       </header>
+
+      <div class="library-filters chips">
+        <button
+          type="button"
+          class="chip"
+          [class.chip-active]="activeLibraryType === 'all'"
+          (click)="switchLibraryType('all')">
+          All
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip-active]="activeLibraryType === 'movies'"
+          (click)="switchLibraryType('movies')">
+          Movies
+        </button>
+        <button
+          type="button"
+          class="chip"
+          [class.chip-active]="activeLibraryType === 'games'"
+          (click)="switchLibraryType('games')">
+          Games
+        </button>
+      </div>
 
       <div class="library-list">
         @for (item of libraryItems; track item.title) {
@@ -87,11 +180,32 @@
             <img [src]="item.image" [alt]="item.title" />
             <div class="item-info">
               <h3>{{ item.title }}</h3>
-              <p><span class="type">{{ item.type }}</span> · {{ item.genre }}</p>
+              <p><span class="type" [class.type-game]="item.type === 'Game'">{{ item.type }}</span> · {{ item.genre }}</p>
             </div>
             <strong class="item-rating">★ {{ item.rating }}</strong>
           </article>
         }
+        @if (libraryItems.length === 0) {
+          <p class="empty-state">No items to display</p>
+        }
+      </div>
+
+      <div class="library-pagination">
+        <button
+          type="button"
+          class="chip"
+          [disabled]="libraryPage <= 1"
+          (click)="goToPreviousLibraryPage()">
+          Previous
+        </button>
+        <span class="page-indicator">Page {{ libraryPage }} / {{ libraryTotalPages }}</span>
+        <button
+          type="button"
+          class="chip"
+          [disabled]="libraryPage >= libraryTotalPages"
+          (click)="goToNextLibraryPage()">
+          Next
+        </button>
       </div>
     </section>
   </main>

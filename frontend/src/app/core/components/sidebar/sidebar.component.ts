@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../../environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 type NavItem = {
   label: string;
@@ -17,11 +19,13 @@ type NavItem = {
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit, OnDestroy {
   private readonly api = environment.apiUrl;
   private readonly mobileBreakpoint = 900;
+  private destroy$ = new Subject<void>();
 
   isMobileMenuOpen = false;
+  avatarCacheBust: number = Date.now();
 
   readonly navItems: NavItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
@@ -35,6 +39,19 @@ export class SidebarComponent {
 
   constructor(private authService: AuthService) {}
 
+  ngOnInit(): void {
+    this.authService.getAvatarCacheBust()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(cacheBust => {
+        this.avatarCacheBust = cacheBust;
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }
@@ -46,7 +63,7 @@ export class SidebarComponent {
   get currentUserAvatarUrl(): string {
     const userId = this.authService.getUserIdFromToken();
     if (userId) {
-      return `${this.api}/auth/profile-picture/${userId}`;
+      return `${this.api}/auth/profile-picture/${userId}?t=${this.avatarCacheBust}`;
     }
 
     return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.avatarSeed)}`;

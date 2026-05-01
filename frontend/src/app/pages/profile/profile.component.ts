@@ -1,8 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
+import { ProfileService, ProfileData, ContentListResponse } from '../../core/services/profile.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
+import { environment } from '../../../environments/environment';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 type ActivityMonth = {
   month: string;
@@ -22,6 +27,7 @@ type LibraryItem = {
   genre: string;
   rating: number;
   image: string;
+  interactedAt: string;
 };
 
 @Component({
@@ -31,64 +37,562 @@ type LibraryItem = {
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
-export class ProfileComponent {
-  readonly monthlyActivity: ActivityMonth[] = [
-    { month: 'Aug', movies: 4, games: 3 },
-    { month: 'Sep', movies: 6, games: 5 },
-    { month: 'Oct', movies: 5, games: 8 },
-    { month: 'Nov', movies: 9, games: 6 },
-    { month: 'Dec', movies: 7, games: 10 },
-    { month: 'Jan', movies: 11, games: 9 },
-    { month: 'Feb', movies: 8, games: 12 }
+export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('activityChart') private activityChartRef?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('genreChart') private genreChartRef?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
+
+  private readonly api = environment.apiUrl;
+  private avatarCacheBust = Date.now();
+  isUploadingProfilePicture: boolean = false;
+  showUploadModal: boolean = false;
+  isDragOver: boolean = false;
+  private activityChartInstance: Chart<'bar'> | null = null;
+  private genreChartInstance: Chart<'doughnut'> | null = null;
+  private isViewReady = false;
+
+  monthlyActivity: ActivityMonth[] = [];
+  genres: GenreItem[] = [];
+  libraryItems: LibraryItem[] = [];
+  
+  profileData: ProfileData | null = null;
+  movieCount: number = 0;
+  gamesCount: number = 0;
+  wishlistCount: number = 0;
+  profileName: string = '';
+  memberSinceLabel: string = 'Member since';
+  
+  activeLibraryTab: 'history' | 'wishlist' = 'history';
+  activeLibraryType: 'all' | 'movies' | 'games' = 'all';
+  libraryPage: number = 1;
+  readonly libraryPageSize: number = 5;
+  libraryTotalItems: number = 0;
+  libraryTotalPages: number = 1;
+  genreFilter: 'all' | 'movies' | 'games' = 'all';
+  
+  toastMessage: string = '';
+  toastType: 'error' | 'success' = 'error';
+  showToast: boolean = false;
+  
+  private movieGenreData: Array<{ genre: string; count: number }> = [];
+  private gameGenreData: Array<{ genre: string; count: number }> = [];
+  
+  // Color palette for genres (expanded to 30+ colors for no repeats)
+  private readonly genreColors = [
+    '#6f53ff', '#65b4d4', '#e38a3f', '#61bf8c', 
+    '#de5d5d', '#667191', '#5ca3d4', '#d4635c',
+    '#ff6b9d', '#c06c84', '#6c567b', '#d5573b',
+    '#ff6b6b', '#4ecdc4', '#45b7aa', '#96ceb4',
+    '#ffeaa7', '#dfe6e9', '#a29bfe', '#74b9ff',
+    '#81ecec', '#55efc4', '#fab1a0', '#fd79a8',
+    '#fdcb6e', '#6c5ce7', '#00b894', '#e84393',
+    '#0984e3', '#f368e0', '#30336b', '#f7b731'
   ];
 
-  readonly genres: GenreItem[] = [
-    { label: 'Sci-Fi', value: 28, color: '#6f53ff' },
-    { label: 'Action', value: 22, color: '#65b4d4' },
-    { label: 'Fantasy', value: 18, color: '#e38a3f' },
-    { label: 'RPG', value: 15, color: '#61bf8c' },
-    { label: 'Horror', value: 10, color: '#de5d5d' },
-    { label: 'Other', value: 7, color: '#667191' }
-  ];
+  constructor(
+    private authService: AuthService,
+    private profileService: ProfileService
+  ) {}
 
-  readonly libraryItems: LibraryItem[] = [
-    {
-      title: 'Echoes of the Void',
-      type: 'Movie',
-      genre: 'Sci-Fi',
-      rating: 4.7,
-      image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=120&h=120&fit=crop'
-    },
-    {
-      title: 'Neon Horizon',
-      type: 'Game',
-      genre: 'Action',
-      rating: 4.5,
-      image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=120&h=120&fit=crop'
+  ngOnInit(): void {
+    this.profileName = this.getSessionNameFallback();
+    this.loadProfileData();
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewReady = true;
+    this.refreshCharts();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyCharts();
+  }
+
+  private getSessionNameFallback(): string {
+    const sessionName = (this.authService.getUserName() || '').trim();
+    return sessionName || 'user';
+  }
+
+  private loadProfileData(): void {
+    this.profileService.getProfileData().subscribe({
+      next: (data) => {
+        this.profileData = data;
+        this.avatarCacheBust = Date.now();
+        this.movieCount = data.counts.watchedMovies;
+        this.gamesCount = data.counts.gamesPlayed;
+        this.wishlistCount = data.counts.totalWishlisted;
+        const backendName = (data.user.name || '').trim();
+        this.profileName = backendName || this.getSessionNameFallback();
+        this.memberSinceLabel = this.formatMemberSince(data.user.createdAt);
+        
+        // Process monthly activity
+        this.monthlyActivity = data.monthlyDistribution.map(item => ({
+          month: item.month.split(' ')[0],
+          movies: item.movies,
+          games: item.games
+        }));
+        
+        // Process and combine genres
+        this.processGenres(data.movieGenreDistribution, data.gameGenreDistribution);
+        
+        // Render charts with updated data
+        this.refreshCharts();
+        
+        // Load library items (history by default)
+        this.loadLibraryItems();
+      },
+      error: (err) => {
+        console.error('Error loading profile data:', err);
+      }
+    });
+  }
+
+  private processGenres(
+    movieGenres: Array<{ genre: string; count: number }>,
+    gameGenres: Array<{ genre: string; count: number }>
+  ): void {
+    this.movieGenreData = movieGenres;
+    this.gameGenreData = gameGenres;
+    this.applyGenreFilter();
+  }
+
+  private applyGenreFilter(): void {
+    let sourcedGenres: Array<{ genre: string; count: number }> = [];
+
+    if (this.genreFilter === 'movies') {
+      sourcedGenres = this.movieGenreData;
+    } else if (this.genreFilter === 'games') {
+      sourcedGenres = this.gameGenreData;
+    } else {
+      const genreCountMap = new Map<string, number>();
+      this.movieGenreData.forEach(g => {
+        genreCountMap.set(g.genre, (genreCountMap.get(g.genre) || 0) + g.count);
+      });
+      this.gameGenreData.forEach(g => {
+        genreCountMap.set(g.genre, (genreCountMap.get(g.genre) || 0) + g.count);
+      });
+      sourcedGenres = Array.from(genreCountMap.entries()).map(([genre, count]) => ({
+        genre,
+        count
+      }));
     }
-  ];
 
-  constructor(private authService: AuthService) {}
+    const totalCount = sourcedGenres.reduce((sum, item) => sum + item.count, 0);
 
-  get profileName(): string {
-    return this.authService.getUserName() || 'Taylor Brooks';
+    if (totalCount === 0) {
+      this.genres = [];
+      return;
+    }
+
+    this.genres = sourcedGenres
+      .sort((a, b) => b.count - a.count)
+      .map((item, index) => ({
+        label: item.genre,
+        value: Number(((item.count / totalCount) * 100).toFixed(1)),
+        color: this.genreColors[index % this.genreColors.length]
+      }));
+
+    this.refreshCharts();
   }
 
-  get chartMax(): number {
-    return Math.max(...this.monthlyActivity.map((item) => Math.max(item.movies, item.games)));
+  switchGenreFilter(filter: 'all' | 'movies' | 'games'): void {
+    this.genreFilter = filter;
+    this.applyGenreFilter();
   }
 
-  get donutGradient(): string {
-    let current = 0;
-    const slices = this.genres
-      .map((item) => {
-        const start = current;
-        const end = current + item.value;
-        current = end;
-        return `${item.color} ${start}% ${end}%`;
+  private refreshCharts(): void {
+    if (!this.isViewReady) {
+      return;
+    }
+
+    this.renderActivityChart();
+    this.renderGenreChart();
+  }
+
+  private destroyCharts(): void {
+    this.activityChartInstance?.destroy();
+    this.genreChartInstance?.destroy();
+    this.activityChartInstance = null;
+    this.genreChartInstance = null;
+  }
+
+  private renderActivityChart(): void {
+    const canvas = this.activityChartRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+
+    this.activityChartInstance?.destroy();
+
+    const labels = this.monthlyActivity.map(item => item.month);
+    const movieValues = this.monthlyActivity.map(item => item.movies);
+    const gameValues = this.monthlyActivity.map(item => item.games);
+
+    this.activityChartInstance = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Movies',
+            data: movieValues,
+            backgroundColor: '#e38a3f',
+            borderRadius: 6,
+            maxBarThickness: 28
+          },
+          {
+            label: 'Games',
+            data: gameValues,
+            backgroundColor: '#65b4d4',
+            borderRadius: 6,
+            maxBarThickness: 28
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#8f99c6' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              color: '#8f99c6'
+            },
+            grid: {
+              color: 'rgba(143, 153, 198, 0.14)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  private renderGenreChart(): void {
+    const canvas = this.genreChartRef?.nativeElement;
+    if (!canvas) {
+      return;
+    }
+
+    this.genreChartInstance?.destroy();
+
+    const hasGenreData = this.genres.length > 0;
+    const labels = hasGenreData ? this.genres.map(item => item.label) : ['No data'];
+    const values = hasGenreData ? this.genres.map(item => item.value) : [100];
+    const colors = hasGenreData ? this.genres.map(item => item.color) : ['#667191'];
+
+    this.genreChartInstance = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: colors,
+            borderColor: '#0d1024',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '58%',
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  }
+
+
+
+  private loadLibraryItems(): void {
+    const isHistory = this.activeLibraryTab === 'history';
+
+    if (this.activeLibraryType === 'movies') {
+      const movieRequest = isHistory
+        ? this.profileService.getWatchedMovies(this.libraryPage, this.libraryPageSize).toPromise()
+        : this.profileService.getWishlistedMovies(this.libraryPage, this.libraryPageSize).toPromise();
+
+      movieRequest
+        .then((movies) => {
+          this.libraryItems = this.combineAndSortItems(movies, undefined);
+          this.libraryTotalItems = movies?.pagination.total ?? 0;
+          this.libraryTotalPages = Math.max(1, Math.ceil(this.libraryTotalItems / this.libraryPageSize));
+        })
+        .catch(err => {
+          const section = isHistory ? 'history' : 'wishlist';
+          console.error(`Error loading ${section}:`, err);
+        });
+      return;
+    }
+
+    if (this.activeLibraryType === 'games') {
+      const gameRequest = isHistory
+        ? this.profileService.getPlayedGames(this.libraryPage, this.libraryPageSize).toPromise()
+        : this.profileService.getWishlistedGames(this.libraryPage, this.libraryPageSize).toPromise();
+
+      gameRequest
+        .then((games) => {
+          this.libraryItems = this.combineAndSortItems(undefined, games);
+          this.libraryTotalItems = games?.pagination.total ?? 0;
+          this.libraryTotalPages = Math.max(1, Math.ceil(this.libraryTotalItems / this.libraryPageSize));
+        })
+        .catch(err => {
+          const section = isHistory ? 'history' : 'wishlist';
+          console.error(`Error loading ${section}:`, err);
+        });
+      return;
+    }
+
+    const neededItems = this.libraryPage * this.libraryPageSize;
+    const moviesPromise = isHistory
+      ? this.profileService.getWatchedMovies(1, neededItems).toPromise()
+      : this.profileService.getWishlistedMovies(1, neededItems).toPromise();
+    const gamesPromise = isHistory
+      ? this.profileService.getPlayedGames(1, neededItems).toPromise()
+      : this.profileService.getWishlistedGames(1, neededItems).toPromise();
+
+    Promise.all([moviesPromise, gamesPromise])
+      .then(([movies, games]) => {
+        const combinedItems = this.combineAndSortItems(movies, games);
+        const start = (this.libraryPage - 1) * this.libraryPageSize;
+        const end = start + this.libraryPageSize;
+
+        this.libraryItems = combinedItems.slice(start, end);
+        this.libraryTotalItems = (movies?.pagination.total ?? 0) + (games?.pagination.total ?? 0);
+        this.libraryTotalPages = Math.max(1, Math.ceil(this.libraryTotalItems / this.libraryPageSize));
       })
-      .join(', ');
+      .catch(err => {
+        const section = isHistory ? 'history' : 'wishlist';
+        console.error(`Error loading ${section}:`, err);
+      });
+  }
 
-    return `conic-gradient(${slices})`;
+  private combineAndSortItems(
+    moviesResponse: ContentListResponse | undefined,
+    gamesResponse: ContentListResponse | undefined
+  ): LibraryItem[] {
+    const items: LibraryItem[] = [];
+    
+    if (moviesResponse?.data) {
+      moviesResponse.data.forEach(item => {
+        items.push({
+          title: item.title,
+          type: 'Movie',
+          genre: item.genres[0] || 'N/A',
+          rating: item.avgRating || 0,
+          image: item.cover || 'https://via.placeholder.com/120x180?text=No+Image',
+          interactedAt: item.interactedAt
+        });
+      });
+    }
+    
+    if (gamesResponse?.data) {
+      gamesResponse.data.forEach(item => {
+        items.push({
+          title: item.title,
+          type: 'Game',
+          genre: item.genres[0] || 'N/A',
+          rating: item.avgRating || 0,
+          image: item.cover || 'https://via.placeholder.com/120x180?text=No+Image',
+          interactedAt: item.interactedAt
+        });
+      });
+    }
+    
+    return items
+      .sort((a, b) => new Date(b.interactedAt).getTime() - new Date(a.interactedAt).getTime());
+  }
+
+  switchLibraryTab(tab: 'history' | 'wishlist'): void {
+    this.activeLibraryTab = tab;
+    this.libraryPage = 1;
+    this.loadLibraryItems();
+  }
+
+  switchLibraryType(type: 'all' | 'movies' | 'games'): void {
+    this.activeLibraryType = type;
+    this.libraryPage = 1;
+    this.loadLibraryItems();
+  }
+
+  goToPreviousLibraryPage(): void {
+    if (this.libraryPage <= 1) {
+      return;
+    }
+
+    this.libraryPage -= 1;
+    this.loadLibraryItems();
+  }
+
+  goToNextLibraryPage(): void {
+    if (this.libraryPage >= this.libraryTotalPages) {
+      return;
+    }
+
+    this.libraryPage += 1;
+    this.loadLibraryItems();
+  }
+
+  get profileHandle(): string {
+    return this.profileName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/[^a-z0-9_.-]/g, '') || 'user';
+  }
+
+  get profileAvatarSeed(): string {
+    const id = this.profileData?.user.id || this.authService.getUserIdFromToken() || 'unknown';
+    const name = this.profileName || 'user';
+    return `${id}-${name}`;
+  }
+
+  get profileAvatarUrl(): string {
+    const userId = this.profileData?.user.id || this.authService.getUserIdFromToken();
+
+    if (userId) {
+      return `${this.api}/auth/profile-picture/${userId}?t=${this.avatarCacheBust}`;
+    }
+
+    return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.profileAvatarSeed)}`;
+  }
+
+  private formatMemberSince(createdAt: string | undefined): string {
+    const fallbackId = this.profileData?.user.id || this.authService.getUserIdFromToken();
+    const createdDate = createdAt ? new Date(createdAt) : fallbackId ? this.objectIdToDate(fallbackId) : null;
+
+    if (!createdDate) {
+      return 'Member since';
+    }
+
+    if (Number.isNaN(createdDate.getTime())) {
+      return 'Member since';
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+
+    return `Member since ${formatter.format(createdDate)}`;
+  }
+
+  private objectIdToDate(objectId: string): Date | null {
+    if (!/^[a-fA-F0-9]{24}$/.test(objectId)) {
+      return null;
+    }
+
+    const timestamp = parseInt(objectId.substring(0, 8), 16);
+    if (Number.isNaN(timestamp)) {
+      return null;
+    }
+
+    return new Date(timestamp * 1000);
+  }
+
+  handleProfileAvatarError(event: Event): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target) {
+      return;
+    }
+
+    target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.profileAvatarSeed)}`;
+  }
+
+  triggerFileUpload(): void {
+    this.showUploadModal = true;
+  }
+
+  onProfilePictureSelected(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+    this.handleSelectedFile(file);
+  }
+
+  handleSelectedFile(file: File): void {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedMimes.includes(file.type)) {
+      this.showErrorToast('Invalid file type. Allowed: JPEG, PNG, GIF, WebP');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.showErrorToast('File size must be less than 5MB');
+      return;
+    }
+
+    this.uploadProfilePicture(file);
+  }
+
+  closeUploadModal(): void {
+    this.showUploadModal = false;
+    this.isDragOver = false;
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+    const file = event.dataTransfer?.files?.[0];
+    if (file) {
+      this.handleSelectedFile(file);
+    }
+  }
+
+  openFileSelector(): void {
+    // Called from template to open the hidden file input
+    this.fileInput?.nativeElement?.click();
+  }
+
+  private uploadProfilePicture(file: File): void {
+    this.isUploadingProfilePicture = true;
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    this.profileService.uploadProfilePicture(formData).subscribe({
+      next: () => {
+        this.avatarCacheBust = Date.now();
+        this.authService.notifyAvatarChanged();
+        this.isUploadingProfilePicture = false;
+        this.closeUploadModal();
+      },
+      error: (err) => {
+        console.error('Error uploading profile picture:', err);
+        this.isUploadingProfilePicture = false;
+        this.showErrorToast('Error uploading profile picture. Please try again.');
+      }
+    });
+  }
+
+  private showErrorToast(message: string): void {
+    this.toastMessage = message;
+    this.toastType = 'error';
+    this.showToast = true;
+    setTimeout(() => {
+      this.showToast = false;
+    }, 4000);
   }
 }

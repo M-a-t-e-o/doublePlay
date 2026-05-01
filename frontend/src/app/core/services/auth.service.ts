@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core'
 import { HttpClient } from '@angular/common/http'
+import { BehaviorSubject } from 'rxjs'
 import { environment } from '../../../environments/environment'
 
 @Injectable({ providedIn: 'root' })
@@ -7,6 +8,8 @@ export class AuthService {
   private api = environment.apiUrl
   private readonly tokenKey = 'token'
   private readonly userNameKey = 'userName'
+  
+  private avatarCacheBust$ = new BehaviorSubject<number>(Date.now())
 
   constructor(private http: HttpClient) {}
 
@@ -56,5 +59,13 @@ export class AuthService {
     } catch {
       return null
     }
+  }
+
+  getAvatarCacheBust() {
+    return this.avatarCacheBust$.asObservable()
+  }
+
+  notifyAvatarChanged() {
+    this.avatarCacheBust$.next(Date.now())
   }
 }
