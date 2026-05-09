@@ -50,6 +50,7 @@ app.get('/', (req, res) => {
 });
 
 const authRoutes    = require('./routes/auth');
+const aiRoutes      = require('./routes/ai');
 const movieRoutes   = require('./routes/movies');
 const gameRoutes    = require('./routes/games');
 const friendRoutes  = require('./routes/friends');
@@ -58,6 +59,7 @@ const profileRoutes = require('./routes/profile');
 const adminRoutes   = require('./routes/admin');
 
 app.use('/api/auth',    authRoutes);
+app.use('/api/ai',      aiRoutes);
 app.use('/api/movies',  movieRoutes);
 app.use('/api/games',   gameRoutes);
 app.use('/api/friends', friendRoutes);
