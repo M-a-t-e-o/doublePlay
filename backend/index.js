@@ -52,9 +52,10 @@ app.get('/', (req, res) => {
 const authRoutes    = require('./routes/auth');
 const movieRoutes   = require('./routes/movies');
 const gameRoutes    = require('./routes/games');
-const friendRoutes = require('./routes/friends');
-const socialRoutes = require('./routes/social');
+const friendRoutes  = require('./routes/friends');
+const socialRoutes  = require('./routes/social');
 const profileRoutes = require('./routes/profile');
+const adminRoutes   = require('./routes/admin');
 
 app.use('/api/auth',    authRoutes);
 app.use('/api/movies',  movieRoutes);
@@ -62,6 +63,7 @@ app.use('/api/games',   gameRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/social',  socialRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/admin',   adminRoutes);
 
 // Swagger UI and raw spec
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -109,12 +109,13 @@ router.get('/feed', async (req, res) => {
 
     // ── 5. Populate usuarios (solo los de esta página) ────────────
     const uniqueUserIds = [...new Set(paginated.map(e => String(e.userId)))];
-    const users = await User.find({ _id: { $in: uniqueUserIds } }).select('name profilePicture');
+    const users = await User.find({ _id: { $in: uniqueUserIds } }).select('name username profilePicture');
     const userMap = new Map(users.map(u => [
       String(u._id),
       {
         _id: u._id,
         name: u.name,
+        username: u.username,
         hasProfilePicture: Boolean(u.profilePicture && u.profilePicture.data)
       }
     ]));

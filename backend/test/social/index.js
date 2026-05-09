@@ -86,7 +86,7 @@ async function run() {
     console.log('3)  GET  /social/feed?page=2');
     console.log('4)  GET  /social/feed sin token (debe dar 401)');
     console.log('──── Amistad (para preparar datos del feed) ────');
-    console.log('5)  GET  /friends/search?name=');
+    console.log('5)  GET  /friends/search?query= (por nombre o username)');
     console.log('6)  POST /friends/request/:userId');
     console.log('7)  PUT  /friends/accept/:requestId');
     console.log('8)  GET  /friends (lista amigos)');
@@ -138,14 +138,15 @@ async function run() {
         printResponse('FEED SIN TOKEN (esperado 401)', res);
 
       } else if (option === '5') {
-        const name = await ask('Texto a buscar en el nombre: ');
-        if (!name) {
+        // Busca por nombre completo O username — parámetro ?query=
+        const query = await ask('Texto a buscar (nombre o username): ');
+        if (!query) {
           console.log('\nNecesitas indicar un texto de búsqueda.\n');
           continue;
         }
 
         const res = await requestJson(
-          `${friendBase}/search?name=${encodeURIComponent(name)}`,
+          `${friendBase}/search?query=${encodeURIComponent(query)}`,
           'GET',
           null,
           state.token ? { Authorization: `Bearer ${state.token}` } : {}
@@ -153,11 +154,12 @@ async function run() {
 
         if (res.ok && Array.isArray(res.body) && res.body.length > 0) {
           const first = res.body[0];
-          if (first?.id) {
-            state.lastFoundUserId = first.id;
-          } else if (first?._id) {
-            state.lastFoundUserId = first._id;
-          }
+          state.lastFoundUserId = first?.id || first?._id || state.lastFoundUserId;
+          console.log('\nPrimer resultado:');
+          console.log(`  id:       ${first?.id || first?._id}`);
+          console.log(`  name:     ${first?.name}`);
+          console.log(`  username: ${first?.username}`);
+          console.log('');
         }
 
         printResponse('GET SEARCH USERS', res);

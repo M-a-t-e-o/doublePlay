@@ -30,18 +30,19 @@ function findFriendship(userA, userB) {
   });
 }
 
-// ─── Search users by name to send friend request ────────────────────────────
-// GET /api/friends/search?name=ser
+// ─── Search users by name or username to send friend request ────────────────
+// GET /api/friends/search?query=ser
+// Matches against both the full name (non-unique) and the unique username
 router.get('/search', async (req, res) => {
   try {
     const currentUserId = req.userId;
-    const rawName = req.query.name;
+    const rawQuery = req.query.query;
 
-    if (!rawName || typeof rawName !== 'string' || !rawName.trim()) {
-      return res.status(400).json({ message: 'Query parameter "name" is required' });
+    if (!rawQuery || typeof rawQuery !== 'string' || !rawQuery.trim()) {
+      return res.status(400).json({ message: 'Query parameter "query" is required' });
     }
 
-    const search = rawName.trim();
+    const search = rawQuery.trim();
 
     if (search.length < 2) {
       return res.status(400).json({ message: 'Search must contain at least 2 characters' });
@@ -67,17 +68,22 @@ router.get('/search', async (req, res) => {
       if (receiverId !== String(currentUserId)) excludedUserIds.add(receiverId);
     }
 
+    // Search by full name OR unique username
     const users = await User.find({
       _id: { $nin: Array.from(excludedUserIds) },
-      name: { $regex: escapedSearch, $options: 'i' }
+      $or: [
+        { name:     { $regex: escapedSearch, $options: 'i' } },
+        { username: { $regex: escapedSearch, $options: 'i' } }
+      ]
     })
-      .select('_id name profilePicture')
+      .select('_id name username profilePicture')
       .sort({ name: 1 })
       .limit(20);
 
     const result = users.map(user => ({
-      id: user._id,
-      name: user.name,
+      id:             user._id,
+      name:           user.name,
+      username:       user.username,
       profilePicture: user.profilePicture
     }));
 
@@ -231,8 +237,8 @@ router.get('/', async (req, res) => {
     const friendships = await Friendship.find({
       $or: [{ sender: userId }, { receiver: userId }],
       status: 'accepted'
-    }).populate('sender', 'name')
-      .populate('receiver', 'name');
+    }).populate('sender', 'name username profilePicture')
+      .populate('receiver', 'name username profilePicture');
 
     // Return the friend (the other side of the relationship)
     const friends = friendships.map(f => {
@@ -257,7 +263,7 @@ router.get('/requests/received', async (req, res) => {
     const requests = await Friendship.find({
       receiver: req.userId,
       status: 'pending'
-    }).populate('sender', 'name');
+    }).populate('sender', 'name username profilePicture');
 
     res.json(requests);
   } catch (err) {
@@ -272,7 +278,7 @@ router.get('/requests/sent', async (req, res) => {
     const requests = await Friendship.find({
       sender: req.userId,
       status: 'pending'
-    }).populate('receiver', 'name email profilePicture');
+    }).populate('receiver', 'name username email profilePicture');
 
     res.json(requests);
   } catch (err) {

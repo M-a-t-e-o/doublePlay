@@ -19,9 +19,14 @@ const upload = multer({
 });
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
 
 function isStrongPassword(password) {
   return typeof password === 'string' && PASSWORD_REGEX.test(password);
+}
+
+function isValidUsername(username) {
+  return typeof username === 'string' && USERNAME_REGEX.test(username.toLowerCase().trim());
 }
 
 
@@ -39,15 +44,19 @@ function isStrongPassword(password) {
  *             schema:
  *               type: object
  *               required:
+ *                 - name
+ *                 - username
  *                 - email
  *                 - password
  *               properties:
  *                 name:
  *                   type: string
  *                   example: "Juan Pérez"
+ *                   description: Nombre completo del usuario (no tiene por qué ser único).
  *                 username:
  *                   type: string
  *                   example: "juanp88"
+ *                   description: Nombre de usuario único. Solo letras minúsculas, números y guión bajo. Entre 3 y 30 caracteres.
  *                 email:
  *                   type: string
  *                   format: email
@@ -72,7 +81,7 @@ function isStrongPassword(password) {
  *                     type: string
  *                     example: "60d5ecb54f421b2d1c8e4e1a"
  *         400:
- *           description: Error de validación (campos faltantes, contraseña débil o email en uso)
+ *           description: Error de validación (campos faltantes, username inválido o en uso, contraseña débil, email en uso)
  *         500:
  *           description: Error interno del servidor
  */
@@ -80,8 +89,14 @@ router.post('/register', async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
 
-    if (!email || !password || !(name || username)) {
-      return res.status(400).json({ message: 'Name, email and password are required' });
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({ message: 'Name, username, email and password are required' });
+    }
+
+    if (!isValidUsername(username)) {
+      return res.status(400).json({
+        message: 'Username must be 3–30 characters and contain only lowercase letters, numbers and underscores'
+      });
     }
 
     if (!isStrongPassword(password)) {
@@ -90,11 +105,21 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: 'Email already in use' });
+    const [emailExists, usernameExists] = await Promise.all([
+      User.findOne({ email }),
+      User.findOne({ username: username.toLowerCase().trim() })
+    ]);
+
+    if (emailExists)    return res.status(400).json({ message: 'Email already in use' });
+    if (usernameExists) return res.status(400).json({ message: 'Username already in use' });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name: name || username, email, password: hashed });
+    const user = await User.create({
+      name,
+      username: username.toLowerCase().trim(),
+      email,
+      password: hashed
+    });
 
     res.status(201).json({ message: 'User created', userId: user._id });
   } catch (err) {
@@ -141,6 +166,13 @@ router.post('/register', async (req, res) => {
  *                 name:
  *                   type: string
  *                   example: "Juan Pérez"
+ *                 username:
+ *                   type: string
+ *                   example: "juanp88"
+ *                 role:
+ *                   type: string
+ *                   enum: [user, admin]
+ *                   example: "user"
  *       400:
  *         description: Credenciales inválidas (email o contraseña incorrectos)
  *         content:
@@ -151,6 +183,16 @@ router.post('/register', async (req, res) => {
  *                 message:
  *                   type: string
  *                   example: "Invalid credentials"
+ *       403:
+ *         description: Cuenta suspendida
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Your account has been suspended"
  *       500:
  *         description: Error interno del servidor
  */
@@ -164,9 +206,18 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    // Ban check: verified identity but account is suspended
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'Your account has been suspended' });
+    }
 
-    res.json({ token, name: user.name });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({ token, name: user.name, username: user.username, role: user.role });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

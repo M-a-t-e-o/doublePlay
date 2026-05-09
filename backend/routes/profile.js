@@ -307,7 +307,7 @@ router.get('/me', async (req, res) => {
       movieGenreDistribution,
       gameGenreDistribution
     ] = await Promise.all([
-      User.findById(userId).select('name profilePicture').lean(),
+      User.findById(userId).select('name username profilePicture').lean(),
       Interaction.countDocuments({ user: userId, contentType: 'movie', watched: true }),
       Interaction.countDocuments({ user: userId, contentType: 'game', watched: true }),
       Interaction.countDocuments({ user: userId, inWishlist: true }),
@@ -324,6 +324,7 @@ router.get('/me', async (req, res) => {
       user: {
         id: String(user._id),
         name: user.name,
+        username: user.username,
         hasProfilePicture: Boolean(user.profilePicture?.data)
       },
       counts: {
