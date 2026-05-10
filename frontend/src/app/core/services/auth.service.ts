@@ -65,6 +65,10 @@ export class AuthService {
     return this.avatarCacheBust$.asObservable()
   }
 
+  getAvatarCacheBustValue(): number {
+    return this.avatarCacheBust$.value
+  }
+
   notifyAvatarChanged() {
     this.avatarCacheBust$.next(Date.now())
   }

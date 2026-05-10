@@ -76,6 +76,12 @@ export interface FriendRequestSent {
   createdAt: string;
 }
 
+export interface FriendSearchResult {
+  id: string;
+  name: string;
+  profilePicture?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -103,6 +109,14 @@ export class SocialService {
 
   getSentRequests(): Observable<FriendRequestSent[]> {
     return this.http.get<FriendRequestSent[]>(`${this.api}/friends/requests/sent`);
+  }
+
+  searchUsersByName(name: string): Observable<FriendSearchResult[]> {
+    return this.http.get<FriendSearchResult[]>(`${this.api}/friends/search`, {
+      params: {
+        query: name
+      }
+    });
   }
 
   sendRequest(userId: string): Observable<{ message: string }> {

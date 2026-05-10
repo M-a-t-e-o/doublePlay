@@ -146,11 +146,47 @@
             <div class="add-friend-form">
               <input
                 type="text"
-                [(ngModel)]="requestUserId"
-                placeholder="Paste user id"
-                aria-label="User id" />
-              <button type="button" (click)="sendFriendRequest()">Send</button>
+                [ngModel]="addFriendQuery"
+                (ngModelChange)="onAddFriendQueryChange($event)"
+                placeholder="Search by name"
+                aria-label="Search users by name" />
             </div>
+
+            @if (addFriendQuery.trim().length > 0 && addFriendQuery.trim().length < 2) {
+              <p class="search-helper">Write at least 2 letters to search.</p>
+            }
+
+            @if (isSearchingUsers) {
+              <p class="search-helper">Searching users...</p>
+            }
+
+            @if (addFriendSearchError) {
+              <p class="search-error">{{ addFriendSearchError }}</p>
+            }
+
+            @if (!isSearchingUsers && addFriendQuery.trim().length >= 2 && addFriendResults.length === 0 && !addFriendSearchError) {
+              <p class="search-helper">No users found for "{{ addFriendQuery.trim() }}".</p>
+            }
+
+            @if (addFriendResults.length > 0) {
+              <div class="search-results">
+                @for (user of addFriendResults; track user.id) {
+                  <article class="search-result-item">
+                    <div class="search-result-avatar">
+                      <img
+                        [src]="user.profilePicture || getDefaultAvatarUrl(user.name || 'user')"
+                        [alt]="user.name || 'User avatar'"
+                        (error)="handleSearchResultAvatarError($event, user.name)"
+                        class="result-avatar-image" />
+                    </div>
+                    <div class="search-result-content">
+                      <p class="name">{{ user.name }}</p>
+                    </div>
+                    <button type="button" (click)="sendFriendRequest(user.id)" class="send-request-btn">Send request</button>
+                  </article>
+                }
+              </div>
+            }
           }
 
           @if (requestActionMessage) {
