@@ -4,6 +4,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } fr
 import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/services/auth.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 import { SearchDropdownComponent } from '../../core/components/search-dropdown/search-dropdown.component';
 
@@ -15,6 +16,15 @@ type MediaCard = {
   description: string;
   posterUrl: string;
   trailerYoutubeId?: string;
+};
+
+type HeroSlide = {
+  kind: 'movie' | 'game';
+  item: MediaCard;
+  actionLabel: string;
+  actionRoute: string[];
+  secondaryLabel: string;
+  secondaryRoute: string[];
 };
 
 type MoviesApiResponse = {
@@ -61,7 +71,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly fetchLimit = 30;
   private readonly cardWidthPx = 150;
   private readonly gapPx = 11.2;
+  private readonly heroRotationDelayMs = 5000;
   private resizeObserver: ResizeObserver | null = null;
+  private heroRotationTimer: ReturnType<typeof setInterval> | null = null;
   visibleMoviesCount = 6;
   visibleGamesCount = 6;
 
@@ -71,20 +83,48 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly ratingStars = [1, 2, 3, 4, 5];
 
   topMovies: MediaCard[] = [];
-  featuredMovie: MediaCard | null = null;
+  topGames: MediaCard[] = [];
+  heroSlides: HeroSlide[] = [];
+  activeHeroIndex = 0;
   isLoadingMovies = false;
   moviesError = '';
-  topGames: MediaCard[] = [];
   isLoadingGames = false;
   gamesError = '';
   showTrailerModal = false;
   trailerVideoId: string | null = null;
   trailerUrl: SafeResourceUrl | null = null;
 
+  get avatarCacheBust(): number {
+    return this.authService.getAvatarCacheBustValue();
+  }
+
+  get currentUserAvatarUrl(): string {
+    const userId = this.authService.getUserIdFromToken();
+    if (userId) {
+      return `${this.api}/auth/profile-picture/${userId}?t=${this.avatarCacheBust}`;
+    }
+
+    return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.avatarSeed)}`;
+  }
+
+  get avatarSeed(): string {
+    const userId = this.authService.getUserIdFromToken() || 'unknown';
+    const userName = this.authService.getUserName() || 'user';
+    return `${userId}-${userName}`;
+  }
+
   constructor(
     private http: HttpClient,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private authService: AuthService
   ) {}
+
+  handleCurrentUserAvatarError(event: Event): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target) return;
+
+    target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.avatarSeed)}`;
+  }
 
   ngOnInit(): void {
     this.loadTopMovies();
@@ -97,6 +137,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.stopHeroRotation();
   }
 
   private setupResizeObserver(): void {
@@ -145,6 +186,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.topGames.slice(0, safeCount);
   }
 
+  get currentHeroSlide(): HeroSlide | null {
+    if (this.heroSlides.length === 0) {
+      return null;
+    }
+
+    return this.heroSlides[this.activeHeroIndex] ?? this.heroSlides[0] ?? null;
+  }
+
   private loadTopMovies(): void {
     this.isLoadingMovies = true;
     this.moviesError = '';
@@ -161,17 +210,17 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           const movies = (response.data ?? []).map((movie) => this.mapMovie(movie));
           const sourceMovies = this.pickTopOrFirst(movies);
 
-          this.featuredMovie = sourceMovies[0] ?? null;
           this.topMovies = sourceMovies;
           this.isLoadingMovies = false;
           this.updateVisibleCounts();
+          this.refreshHeroCarousel();
         },
         error: () => {
           this.moviesError = 'No se pudieron cargar las peliculas.';
-          this.featuredMovie = null;
           this.topMovies = [];
           this.isLoadingMovies = false;
           this.updateVisibleCounts();
+          this.refreshHeroCarousel();
         }
       });
   }
@@ -193,14 +242,25 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           this.topGames = this.pickTopOrFirst(games);
           this.isLoadingGames = false;
           this.updateVisibleCounts();
+          this.refreshHeroCarousel();
         },
         error: () => {
           this.gamesError = 'No se pudieron cargar los juegos.';
           this.topGames = [];
           this.isLoadingGames = false;
           this.updateVisibleCounts();
+          this.refreshHeroCarousel();
         }
       });
+  }
+
+  moveHero(direction: -1 | 1): void {
+    if (this.heroSlides.length < 2) {
+      return;
+    }
+
+    this.activeHeroIndex = (this.activeHeroIndex + direction + this.heroSlides.length) % this.heroSlides.length;
+    this.restartHeroRotation();
   }
 
   private pickTopOrFirst(items: MediaCard[]): MediaCard[] {
@@ -246,6 +306,21 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     return Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
   }
 
+  getHeroTitleFontSize(title: string | undefined): string {
+    const length = title?.trim().length ?? 0;
+    const longestWord = (title ?? '')
+      .trim()
+      .split(/\s+/)
+      .reduce((max, word) => Math.max(max, word.length), 0);
+
+    const sizeRem = Math.max(
+      1.65,
+      Math.min(3, 3 - Math.max(0, length - 18) * 0.045 - Math.max(0, longestWord - 12) * 0.03)
+    );
+
+    return `${sizeRem.toFixed(2)}rem`;
+  }
+
 openTrailer(media: MediaCard): void {
     this.trailerVideoId = media.trailerYoutubeId || null;
     if (this.trailerVideoId) {
@@ -267,4 +342,66 @@ openTrailer(media: MediaCard): void {
   }
 
   trackByTitle = (_: number, item: MediaCard): string => item.title;
+
+  private refreshHeroCarousel(): void {
+    const slides: HeroSlide[] = [];
+
+    if (this.topMovies[0]) {
+      slides.push({
+        kind: 'movie',
+        item: this.topMovies[0],
+        actionLabel: '▶ Ver trailer',
+        actionRoute: ['/movies', this.topMovies[0].id],
+        secondaryLabel: 'More Info',
+        secondaryRoute: ['/movies', this.topMovies[0].id]
+      });
+    }
+
+    if (this.topGames[0]) {
+      slides.push({
+        kind: 'game',
+        item: this.topGames[0],
+        actionLabel: 'More Info',
+        actionRoute: ['/games', this.topGames[0].id],
+        secondaryLabel: 'See all games',
+        secondaryRoute: ['/games']
+      });
+    }
+
+    this.heroSlides = slides;
+
+    if (slides.length === 0) {
+      this.activeHeroIndex = 0;
+      this.stopHeroRotation();
+      return;
+    }
+
+    this.activeHeroIndex = this.activeHeroIndex % slides.length;
+
+    if (slides.length > 1) {
+      this.startHeroRotation();
+    } else {
+      this.stopHeroRotation();
+    }
+  }
+
+  private startHeroRotation(): void {
+    this.stopHeroRotation();
+    this.heroRotationTimer = window.setInterval(() => {
+      this.moveHero(1);
+    }, this.heroRotationDelayMs);
+  }
+
+  private restartHeroRotation(): void {
+    if (this.heroSlides.length > 1) {
+      this.startHeroRotation();
+    }
+  }
+
+  private stopHeroRotation(): void {
+    if (this.heroRotationTimer !== null) {
+      clearInterval(this.heroRotationTimer);
+      this.heroRotationTimer = null;
+    }
+  }
 }

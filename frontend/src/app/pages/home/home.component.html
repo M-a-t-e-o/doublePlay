@@ -7,56 +7,68 @@
         [placeholder]="'Search movies, games...'"
         [label]="'Search'">
       </app-search-dropdown>
-      <button class="profile-button" type="button" routerLink="/profile">U</button>
+      <button class="profile-button" type="button" routerLink="/profile" aria-label="Open profile">
+        <img
+          class="profile-button-image"
+          [src]="currentUserAvatarUrl"
+          (error)="handleCurrentUserAvatarError($event)"
+          alt="User avatar"
+        />
+      </button>
     </header>
 
     <section class="hero-card">
-      @if (isLoadingMovies) {
+      @if (currentHeroSlide) {
+        <img class="hero-poster" [src]="getPosterUrl(currentHeroSlide.item)" [alt]="currentHeroSlide.item.title" />
+
+        @if (heroSlides.length > 1) {
+          <div class="hero-nav-layer">
+            <button
+              type="button"
+              class="hero-nav hero-nav--prev"
+              (click)="moveHero(-1)"
+              aria-label="Show previous featured item">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+            </button>
+            <button
+              type="button"
+              class="hero-nav hero-nav--next"
+              (click)="moveHero(1)"
+              aria-label="Show next featured item">
+              <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+            </button>
+          </div>
+        }
+
         <div class="hero-tags">
-          <span class="pill">Featured Movie</span>
+          <span class="pill">{{ currentHeroSlide.kind === 'movie' ? 'Featured Movie' : 'Featured Game' }}</span>
+          <span class="hero-meta">{{ currentHeroSlide.item.genre }}</span>
+        </div>
+        <h1 [style.--hero-title-size]="getHeroTitleFontSize(currentHeroSlide.item.title)">{{ currentHeroSlide.item.title }}</h1>
+        <p class="hero-copy">{{ currentHeroSlide.item.description }}</p>
+        <div class="hero-actions">
+          @if (currentHeroSlide.kind === 'movie' && currentHeroSlide.item.trailerYoutubeId) {
+            <button type="button" class="btn-primary" (click)="openTrailer(currentHeroSlide.item)">▶ Ver trailer</button>
+          } @else {
+            <a class="btn-primary" [routerLink]="currentHeroSlide.actionRoute">More Info</a>
+          }
+          <a class="btn-soft" [routerLink]="currentHeroSlide.secondaryRoute">{{ currentHeroSlide.secondaryLabel }}</a>
+        </div>
+        <div class="hero-rating">★ {{ currentHeroSlide.item.rating.toFixed(1) }}</div>
+      } @else if (isLoadingMovies || isLoadingGames) {
+        <div class="hero-tags">
+          <span class="pill">Featured</span>
           <span class="hero-meta">Cargando...</span>
         </div>
         <h1>Cargando catalogo</h1>
-      } @else if (featuredMovie) {
-        <img class="hero-poster" [src]="getPosterUrl(featuredMovie)" [alt]="featuredMovie.title" />
-        <div class="hero-tags">
-          <span class="pill">Featured Movie</span>
-          <span class="hero-meta">{{ featuredMovie.genre }}</span>
-        </div>
-        <h1>{{ featuredMovie.title }}</h1>
-        <p class="hero-copy">{{ featuredMovie.description }}</p>
-        <div class="hero-actions">
-          <button type="button" class="btn-primary" (click)="openTrailer(featuredMovie!)">▶ Ver trailer</button>
-          <button type="button" class="btn-soft" [routerLink]="['/movies', featuredMovie!.id]">More Info</button>
-        </div>
-        <div class="hero-rating">★ {{ featuredMovie.rating.toFixed(1) }}</div>
       } @else {
         <div class="hero-tags">
-          <span class="pill">Featured Movie</span>
+          <span class="pill">Featured</span>
           <span class="hero-meta">Sin datos</span>
         </div>
-        <h1>No hay peliculas disponibles</h1>
+        <h1>No hay contenido disponible</h1>
         <p class="hero-copy">Revisa que el backend este activo para cargar el catalogo.</p>
       }
-    </section>
-
-    <section class="recommendation">
-      <h2>Cross-Media Recommendations</h2>
-      <p class="quote">
-        "Loved the deep-space mystery of Echoes of the Void? Explore the cosmos in Voidwalker Chronicles."
-      </p>
-      <div class="pair-grid">
-        <article class="pair-card">
-          <p class="badge movie">Movie</p>
-          <h3>Echoes of the Void</h3>
-          <p>Space mystery · 4.7</p>
-        </article>
-        <article class="pair-card">
-          <p class="badge game">Game</p>
-          <h3>Voidwalker Chronicles</h3>
-          <p>Action RPG · 4.8</p>
-        </article>
-      </div>
     </section>
 
     <section class="lists">

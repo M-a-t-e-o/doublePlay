@@ -1,0 +1,103 @@
+<div class="chat-shell">
+  <app-sidebar></app-sidebar>
+
+  <main class="content">
+    <header class="page-topbar">
+      <app-search-dropdown [placeholder]="'Search movies, games...'" [label]="'Search'" />
+
+      <button class="profile-button" type="button" aria-label="Open profile">
+        <img
+          [src]="currentUserAvatarUrl"
+          (error)="handleCurrentUserAvatarError($event)"
+          alt="User avatar"
+        />
+      </button>
+    </header>
+
+    <section class="chat-intro">
+      <div class="assistant-avatar material-symbols-outlined" aria-hidden="true">smart_toy</div>
+      <div class="intro-copy">
+        <div class="intro-title-row">
+          <h1>{{ pageData.title }}</h1>
+          <span class="sparkle material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+        </div>
+        <p class="intro-status"><span></span>{{ pageData.subtitle }}</p>
+      </div>
+    </section>
+
+    <section class="chat-panel">
+      <div #messagesViewport class="messages-viewport">
+        @for (message of messages; track trackByIndex($index)) {
+          <article class="message-row" [class.message-row--user]="message.role === 'user'" [class.message-row--system]="message.role === 'system'">
+            <div class="message-avatar" [class.message-avatar--user]="message.role === 'user'" [class.message-avatar--system]="message.role === 'system'">
+              <span class="material-symbols-outlined" aria-hidden="true">
+                {{ message.role === 'user' ? 'person' : message.role === 'system' ? 'warning' : 'smart_toy' }}
+              </span>
+            </div>
+
+            <div class="message-bubble" [class.message-bubble--user]="message.role === 'user'" [class.message-bubble--system]="message.role === 'system'">
+              <p>{{ message.text }}</p>
+            </div>
+          </article>
+
+          <div class="message-time" [class.message-time--user]="message.role === 'user'">
+            {{ message.time }}
+          </div>
+
+          @if ($index === 0) {
+            <div class="suggested-chips">
+              @for (prompt of quickPrompts; track prompt.label) {
+                <button type="button" class="suggested-chip" (click)="sendQuickPrompt(prompt.prompt)">
+                  {{ prompt.label }}
+                </button>
+              }
+            </div>
+          }
+        }
+
+        @if (isSending) {
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        }
+
+        <div #bottomAnchor class="bottom-anchor" aria-hidden="true"></div>
+      </div>
+
+      @if (errorMessage) {
+        <p class="error-note">{{ errorMessage }}</p>
+      }
+    </section>
+
+    <footer class="composer">
+      <div class="action-chips">
+        <button type="button" class="action-chip action-chip--movie" (click)="sendQuickPrompt('I just finished a movie. Recommend something next.')">
+          I finished a movie
+        </button>
+        <button type="button" class="action-chip action-chip--game" (click)="sendQuickPrompt('I just finished a game. Recommend something next.')">
+          I finished a game
+        </button>
+        <button type="button" class="action-chip action-chip--surprise" (click)="sendQuickPrompt('Surprise me with a recommendation.')">
+          Surprise me
+        </button>
+      </div>
+
+      <div class="composer-row">
+        <input
+          class="composer-input"
+          type="text"
+          [(ngModel)]="promptText"
+          (keydown.enter)="sendPrompt(); $event.preventDefault()"
+          [placeholder]="'Ask for a recommendation...'"
+          autocomplete="off"
+        />
+
+        <button class="send-button" type="button" (click)="sendPrompt()" [disabled]="isSending || !promptText.trim()">
+          <span class="material-symbols-outlined" aria-hidden="true">send</span>
+        </button>
+      </div>
+    </footer>
+  </main>
+</div>

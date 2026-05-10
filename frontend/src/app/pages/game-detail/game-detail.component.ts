@@ -88,6 +88,25 @@ export class GameDetailComponent implements OnInit {
   private ownReviewId: string | null = null;
   private ownReviewContent: string | null = null;
 
+  get avatarCacheBust(): number {
+    return this.authService.getAvatarCacheBustValue();
+  }
+
+  get currentUserAvatarUrl(): string {
+    const userId = this.authService.getUserIdFromToken();
+    if (userId) {
+      return `${this.api}/auth/profile-picture/${userId}?t=${this.avatarCacheBust}`;
+    }
+
+    return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.avatarSeed)}`;
+  }
+
+  get avatarSeed(): string {
+    const userId = this.authService.getUserIdFromToken() || 'unknown';
+    const userName = this.authService.getUserName() || 'user';
+    return `${userId}-${userName}`;
+  }
+
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
@@ -142,6 +161,13 @@ export class GameDetailComponent implements OnInit {
 
   getCoverUrl(): string {
     return this.game?.coverUrl?.trim() || this.fallbackCover;
+  }
+
+  handleCurrentUserAvatarError(event: Event): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target) return;
+
+    target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.avatarSeed)}`;
   }
 
   togglePlayed(): void {

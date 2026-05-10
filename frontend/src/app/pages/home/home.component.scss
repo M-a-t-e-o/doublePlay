@@ -138,22 +138,44 @@
   width: 2.7rem;
   height: 2.7rem;
   border-radius: 999px;
+  padding: 0;
+  overflow: hidden;
   font-weight: 700;
+}
+
+.profile-button-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .hero-card {
   position: relative;
   overflow: hidden;
-  min-height: 280px;
-  max-height: 300px;
+  min-height: 340px;
   border-radius: 1.2rem;
-  padding: 1.4rem 1.6rem;
+  padding: 0.95rem 1.6rem 1.25rem;
   border: 1px solid rgb(73 84 131 / 45%);
   background: linear-gradient(140deg, rgb(6 8 20 / 92%) 0%, rgb(12 16 36 / 82%) 44%, rgb(18 25 54 / 94%) 100%);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.hero-card > .hero-tags,
+.hero-card > h1,
+.hero-card > .hero-copy,
+.hero-card > .hero-actions {
+  padding-left: 1.6rem;
+}
+
+.hero-card--movie::after,
+.hero-card--game::after {
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 88%) 0%, rgb(0 0 0 / 76%) 25%, rgb(0 0 0 / 40%) 60%, rgb(0 0 0 / 10%) 100%),
+    linear-gradient(180deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 45%) 40%, rgb(0 0 0 / 75%) 100%);
 }
 
 .hero-card::after {
@@ -174,6 +196,66 @@
 .hero-card > :not(.hero-poster) {
   position: relative;
   z-index: 2;
+}
+
+.hero-nav-layer {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hero-nav {
+  position: absolute;
+  top: 62%;
+  width: 2.6rem;
+  height: 4.2rem;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 0.9rem;
+  background: rgb(8 10 20 / 35%);
+  color: rgb(255 255 255 / 86%);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease, color 160ms ease;
+  pointer-events: auto;
+}
+
+.hero-nav:hover {
+  background: rgb(8 10 20 / 55%);
+  border-color: rgb(255 255 255 / 24%);
+  color: #ffffff;
+}
+
+.hero-nav:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.hero-nav:focus-visible {
+  outline: 2px solid rgb(174 160 255 / 95%);
+  outline-offset: 2px;
+}
+
+.hero-nav--prev {
+  left: 0.55rem;
+  border-radius: 0.9rem 0.35rem 0.35rem 0.9rem;
+}
+
+.hero-nav--next {
+  right: 0.55rem;
+  border-radius: 0.35rem 0.9rem 0.9rem 0.35rem;
+}
+
+.hero-nav--prev,
+.hero-nav--next {
+  box-shadow: 0 12px 30px rgb(0 0 0 / 18%);
+}
+
+.hero-nav .material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
 }
 
 .hero-poster {
@@ -228,18 +310,20 @@
 
 .hero-card h1 {
   margin: 0;
-  margin-top: 0.4rem;
-  font-size: clamp(1.8rem, 4.2vw, 3rem);
-  max-width: 15ch;
+  margin-top: 0;
+  font-size: var(--hero-title-size, clamp(1.8rem, 4.2vw, 3rem));
+  max-width: min(16ch, 100%);
   color: #ffffff;
   font-weight: 900;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   line-height: 1.1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 .hero-copy {
   margin: 0;
-  margin-top: 0.3rem;
+  margin-top: 0;
   max-width: 56ch;
   color: #f0f0f0;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -249,10 +333,17 @@
 }
 
 .hero-actions {
-  margin-top: 0.65rem;
+  margin-top: 0.3rem;
   display: flex;
   gap: 0.65rem;
   flex-wrap: wrap;
+}
+
+.hero-actions a {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-primary,
@@ -290,7 +381,6 @@
   color: #ffffff;
 }
 
-.recommendation,
 .lists article {
   border: 1px solid rgb(56 64 109 / 45%);
   border-radius: 1rem;
@@ -298,46 +388,8 @@
   padding: 1rem;
 }
 
-.recommendation h2,
 .section-head h2 {
   font-size: 1.4rem;
-}
-
-.quote {
-  margin-top: 0.65rem;
-  color: var(--text-soft);
-}
-
-.pair-grid {
-  margin-top: 0.85rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
-.pair-card {
-  padding: 0.85rem;
-  border-radius: 0.9rem;
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 8%);
-}
-
-.badge {
-  width: fit-content;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 0.15rem 0.5rem;
-}
-
-.badge.movie {
-  background: rgb(255 191 0 / 18%);
-  color: #ffd26c;
-}
-
-.badge.game {
-  background: rgb(0 207 255 / 18%);
-  color: #79e8ff;
 }
 
 .lists {
@@ -499,15 +551,26 @@
     display: none;
   }
 
-  .pair-grid,
   .cards-grid {
     grid-template-columns: 1fr;
   }
 
   .hero-card {
-    min-height: 240px;
-    max-height: 260px;
-    padding: 1.1rem;
+    min-height: 300px;
+    padding: 0.9rem;
+  }
+
+  .hero-card > .hero-tags,
+  .hero-card > h1,
+  .hero-card > .hero-copy,
+  .hero-card > .hero-actions {
+    padding-left: 3rem;
+  }
+
+  .hero-nav {
+    width: 2.1rem;
+    height: 3.5rem;
+    top: 64%;
   }
 }
 
@@ -564,7 +627,6 @@
   right: 1rem;
   width: 2.5rem;
   height: 2.5rem;
-  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   font-size: 1.5rem;

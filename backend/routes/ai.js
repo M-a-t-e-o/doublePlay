@@ -1,5 +1,14 @@
 const router = require('express').Router();
-const { Mistral } = require('@mistralai/mistralai');
+let mistralClient = null;
+
+async function getMistral() {
+    if (!mistralClient) {
+        const { Mistral } = await import('@mistralai/mistralai');
+        mistralClient = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
+    }
+    return mistralClient;
+}
+
 const { authRequired } = require('../middleware/auth');
 const axios = require('axios');
 const csv = require('csv-parser');
@@ -12,9 +21,7 @@ const urlGames = process.env.URL_GAMES_SUPABASE;
 console.log(urlMovies ? `Movies URL loaded: ${urlMovies}` : 'Movies URL missing');
 console.log(urlGames ? `Games URL loaded: ${urlGames}` : 'Games URL missing');
 
-const mistral = new Mistral({
-    apiKey: process.env.MISTRAL_API_KEY,
-});
+
 
 
 
@@ -186,7 +193,8 @@ async function generateContent(user_prompt) {
         `GAME_CANDIDATES: ${JSON.stringify(gameCandidates)}`
     ].join('\n');
 
-    const result = await mistral.chat.complete({
+    const client = await getMistral();
+    const result = await client.chat.complete({
         model: "mistral-small-latest",
         messages: [
             { role: 'system', content: systemInstruction },

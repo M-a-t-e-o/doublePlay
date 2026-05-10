@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { PlaceholderRouteData } from './pages/placeholder/placeholder.component';
+import { AIChatComponent } from './pages/ai-chat/ai-chat.component';
 
 export const routes: Routes = [
 	{
@@ -43,14 +43,13 @@ export const routes: Routes = [
 			import('./pages/game-detail/game-detail.component').then((m) => m.GameDetailComponent)
 	},
 	{
-		path: 'chatbot',
-		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
+		path: 'ai',
+		component: AIChatComponent,
 		data: {
-			title: 'AI Chat',
-			subtitle: 'Asistente para sugerencias de peliculas y juegos segun tus gustos.',
-			ctaLabel: 'Volver al Inicio'
-		} satisfies PlaceholderRouteData
+			title: 'doublePlay AI',
+			subtitle: 'AI Assistant that suggests films and games based on your tastes.',
+			ctaLabel: 'Ask for a recommendation'
+		}
 	},
 	{
 		path: 'social',
@@ -65,12 +64,7 @@ export const routes: Routes = [
 	{
 		path: 'admin',
 		loadComponent: () =>
-			import('./pages/placeholder/placeholder.component').then((m) => m.PlaceholderComponent),
-		data: {
-			title: 'Admin Panel',
-			subtitle: 'Panel de control para moderacion y gestion de contenido.',
-			ctaLabel: 'Volver al Inicio'
-		} satisfies PlaceholderRouteData
+			import('./pages/admin/admin.component').then((m) => m.AdminComponent)
 	},
 	{
 		path: '**',
