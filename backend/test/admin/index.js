@@ -79,11 +79,18 @@ async function run() {
 
   while (true) {
     console.log('Selecciona una opcion:');
+    console.log('── Acceso ──────────────────────────────────');
     console.log('1) Login');
-    console.log('2) GET /admin  → con token guardado');
-    console.log('3) GET /admin  → sin token          (debe dar 401)');
-    console.log('4) GET /admin  → con token de user  (debe dar 403)');
-    console.log('5) Mostrar estado actual');
+    console.log('2) GET /admin              → con token guardado');
+    console.log('3) GET /admin              → sin token          (debe dar 401)');
+    console.log('4) GET /admin              → con token de user  (debe dar 403)');
+    console.log('── Stats ───────────────────────────────────');
+    console.log('5) GET /admin/stats        → carga normal (cacheado o primer cálculo)');
+    console.log('6) GET /admin/stats?refresh=true  → fuerza recálculo');
+    console.log('7) GET /admin/stats        → sin token          (debe dar 401)');
+    console.log('8) GET /admin/stats        → con token de user  (debe dar 403)');
+    console.log('────────────────────────────────────────────');
+    console.log('9) Mostrar estado actual');
     console.log('0) Salir\n');
 
     const option = await ask('> ');
@@ -121,13 +128,10 @@ async function run() {
         printResponse(`GET /admin (rol actual: ${state.role || '?'})`, res);
 
       } else if (option === '3') {
-        // Sin cabecera Authorization — debe dar 401
         const res = await requestJson(adminBase);
         printResponse('GET /admin SIN TOKEN (EXPECTED 401)', res);
 
       } else if (option === '4') {
-        // Pide un token manualmente para poder meter uno de user normal
-        // aunque el estado tenga el de admin (o al revés)
         const token = await ask('Pega el token de un usuario con rol "user": ');
         if (!token) {
           console.log('\n[!] Token vacío, operación cancelada.\n');
@@ -144,6 +148,77 @@ async function run() {
         printResponse('GET /admin CON TOKEN DE USER (EXPECTED 403)', res);
 
       } else if (option === '5') {
+        if (!state.token) {
+          console.log('\n[!] No hay token guardado. Haz login primero (opción 1).\n');
+          continue;
+        }
+
+        console.log('\n[...] Calculando stats (puede tardar unos segundos la primera vez)...\n');
+        const res = await requestJson(
+          `${adminBase}/stats`,
+          'GET',
+          null,
+          { Authorization: `Bearer ${state.token}` }
+        );
+
+        if (res.ok) {
+          const s = res.body;
+          console.log('── Resumen rápido ──────────────────────────');
+          console.log(`  computedAt:       ${s.computedAt}`);
+          console.log(`  Usuarios total:   ${s.users?.total}`);
+          console.log(`  Películas:        ${s.content?.totalMovies}  (${s.content?.moviesPercentage}%)`);
+          console.log(`  Juegos:           ${s.content?.totalGames}  (${s.content?.gamesPercentage}%)`);
+          console.log(`  Rating plataforma:${s.ratings?.platformAvg}`);
+          console.log(`  Views totales:    ${s.views?.total}  (movies: ${s.views?.movies}, games: ${s.views?.games})`);
+          console.log(`  Top content:      ${s.topContent?.length} entradas`);
+          console.log(`  Géneros movies:   ${s.genres?.movies?.length} géneros`);
+          console.log(`  Géneros games:    ${s.genres?.games?.length} géneros`);
+          console.log('────────────────────────────────────────────\n');
+        }
+
+        printResponse('GET /admin/stats', res);
+
+      } else if (option === '6') {
+        if (!state.token) {
+          console.log('\n[!] No hay token guardado. Haz login primero (opción 1).\n');
+          continue;
+        }
+
+        console.log('\n[...] Forzando recálculo completo...\n');
+        const res = await requestJson(
+          `${adminBase}/stats?refresh=true`,
+          'GET',
+          null,
+          { Authorization: `Bearer ${state.token}` }
+        );
+
+        if (res.ok) {
+          console.log(`  Recalculado en: ${res.body.computedAt}\n`);
+        }
+
+        printResponse('GET /admin/stats?refresh=true', res);
+
+      } else if (option === '7') {
+        const res = await requestJson(`${adminBase}/stats`);
+        printResponse('GET /admin/stats SIN TOKEN (EXPECTED 401)', res);
+
+      } else if (option === '8') {
+        const token = await ask('Pega el token de un usuario con rol "user": ');
+        if (!token) {
+          console.log('\n[!] Token vacío, operación cancelada.\n');
+          continue;
+        }
+
+        const res = await requestJson(
+          `${adminBase}/stats`,
+          'GET',
+          null,
+          { Authorization: `Bearer ${token}` }
+        );
+
+        printResponse('GET /admin/stats CON TOKEN DE USER (EXPECTED 403)', res);
+
+      } else if (option === '9') {
         console.log('\nEstado actual:');
         console.log(`email:    ${state.email    || '(vacio)'}`);
         console.log(`role:     ${state.role     || '(vacio)'}`);
