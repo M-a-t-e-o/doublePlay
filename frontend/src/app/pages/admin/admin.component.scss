@@ -1,0 +1,14 @@
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  color: var(--text-main);
+}
+
+.admin-content {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 500px at 85% 0%, rgb(111 83 255 / 14%), transparent 50%),
+    radial-gradient(700px 360px at 15% 8%, rgb(71 160 255 / 8%), transparent 55%),
+    linear-gradient(180deg, #090b18 0%, #070916 100%);
+}

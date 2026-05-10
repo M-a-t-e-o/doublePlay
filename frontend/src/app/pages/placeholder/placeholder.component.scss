@@ -1,203 +1,28 @@
 .placeholder-shell {
-  min-height: 100vh;
   display: grid;
   grid-template-columns: 260px 1fr;
+  min-height: 100vh;
   color: var(--text-main);
 }
 
-.sidebar {
-  border-right: 1px solid var(--line);
-  padding: 1.2rem 1rem;
-  background: linear-gradient(180deg, rgb(9 11 24 / 96%) 0%, rgb(8 10 22 / 88%) 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  position: sticky;
-  top: 0;
-  align-self: start;
-  height: 100vh;
-}
-
-.brand {
+.content {
+  padding: 2rem;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  color: var(--text-main);
-  text-decoration: none;
-  font-weight: 800;
+  justify-content: center;
 }
 
-.brand-badge {
-  width: 2rem;
-  height: 2rem;
-  display: inline-grid;
-  place-items: center;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #51bcff 0%, #6f53ff 75%);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
+.placeholder-message {
+  text-align: center;
 }
 
-.menu {
-  display: grid;
-  gap: 0.35rem;
+.placeholder-message h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
-.menu-link {
-  text-decoration: none;
-  color: var(--text-soft);
-  padding: 0.85rem 0.9rem;
-  border-radius: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  transition: all 180ms ease;
-  border: 1px solid transparent;
-}
-
-.menu-link:hover {
-  color: var(--text-main);
-  background: rgb(123 92 255 / 12%);
-}
-
-.menu-link.is-active {
-  color: var(--text-main);
-  background: linear-gradient(90deg, rgb(98 47 190 / 60%), rgb(71 25 152 / 48%));
-  border-color: rgb(140 101 237 / 35%);
-  box-shadow: inset 0 0 0 1px rgb(177 145 255 / 18%);
-}
-
-.menu-icon {
-  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
-  font-size: 1.2rem;
-  line-height: 1;
-  color: #9aa4d1;
-}
-
-.menu-link.is-active .menu-icon {
-  color: #c8b1ff;
-}
-
-.menu-link--admin {
-  margin-top: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(52 58 94 / 45%);
-}
-
-.signin-card {
-  margin-top: auto;
-  padding: 1rem;
-  border-radius: 0.95rem;
-  background: linear-gradient(160deg, rgb(24 28 53 / 95%), rgb(17 20 42 / 90%));
-  border: 1px solid rgb(122 97 255 / 28%);
-}
-
-.signin-title {
-  font-weight: 700;
-}
-
-.signin-text {
-  margin-top: 0.45rem;
-  color: var(--text-soft);
-  font-size: 0.9rem;
-}
-
-.signin-actions {
-  margin-top: 0.85rem;
-  display: flex;
-  gap: 0.85rem;
-}
-
-.signin-actions a {
-  text-decoration: none;
-  color: #c6b8ff;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.placeholder-content {
-  padding: 1rem;
-  display: grid;
-  place-items: center;
-}
-
-.placeholder-card {
-  width: min(760px, 100%);
-  border-radius: 1.1rem;
-  padding: 1.5rem;
-  border: 1px solid rgb(106 120 188 / 36%);
-  background:
-    radial-gradient(900px 350px at 95% -20%, rgb(116 104 206 / 20%), transparent 50%),
-    linear-gradient(180deg, rgb(14 17 37 / 95%), rgb(9 12 30 / 92%));
-}
-
-.tag {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  background: rgb(123 92 255 / 22%);
-  color: #d0c6ff;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-h1 {
-  margin-top: 0.7rem;
-  font-size: clamp(1.8rem, 4.8vw, 2.6rem);
-}
-
-.subtitle {
-  margin-top: 0.65rem;
+.placeholder-message p {
+  font-size: 1.1rem;
   color: var(--text-soft);
 }
 
-.mock-block {
-  margin-top: 1rem;
-  border: 1px dashed rgb(154 169 255 / 35%);
-  border-radius: 0.9rem;
-  padding: 0.9rem;
-  background: rgb(255 255 255 / 3%);
-}
-
-.mock-title {
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.actions {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
-.btn-main,
-.btn-soft {
-  text-decoration: none;
-  padding: 0.65rem 1rem;
-  border-radius: 0.8rem;
-  font-weight: 700;
-}
-
-.btn-main {
-  color: white;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
-}
-
-.btn-soft {
-  color: #d5dcff;
-  background: rgb(255 255 255 / 10%);
-}
-
-@media (max-width: 1024px) {
-  .placeholder-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    position: static;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-}

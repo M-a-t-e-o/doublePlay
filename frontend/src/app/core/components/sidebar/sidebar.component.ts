@@ -31,7 +31,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Movies', route: '/movies', icon: 'movie' },
     { label: 'Games', route: '/games', icon: 'stadia_controller' },
-    { label: 'AI Chat', route: '/chatbot', icon: 'smart_toy' },
+    { label: 'AI Chat', route: '/ai', icon: 'smart_toy' },
     { label: 'Social', route: '/social', icon: 'groups' },
     { label: 'Profile', route: '/profile', icon: 'person' },
     { label: 'Admin Panel', route: '/admin', icon: 'shield' }

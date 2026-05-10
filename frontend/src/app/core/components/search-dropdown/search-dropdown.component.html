@@ -16,7 +16,7 @@
   </label>
 
   @if (isOpen && searchQuery.trim().length > 0) {
-    <div class="search-dropdown">
+    <div class="search-dropdown" (mouseenter)="onDropdownMouseEnter()" (mouseleave)="onDropdownMouseLeave()">
       @if (isSearching) {
         <div class="search-item loading">
           <span>Buscando...</span>

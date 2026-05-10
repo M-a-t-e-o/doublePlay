@@ -51,10 +51,7 @@
   font-weight: 800;
   margin: 0;
   line-height: 1.06;
-  background: linear-gradient(135deg, #51bcff 0%, #6f53ff 75%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
 }
 
 .hero-block p {
@@ -355,6 +352,104 @@
   padding: 0.45rem 0.7rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.search-helper,
+.search-error {
+  margin: 0.15rem 0.45rem 0.4rem;
+  font-size: 0.9rem;
+}
+
+.search-helper {
+  color: #9ea8d4;
+}
+
+.search-error {
+  color: #ffb4b4;
+}
+
+.search-results {
+  margin: 0.35rem 0.35rem 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.search-result-item {
+  border: 1px solid rgb(80 89 141 / 35%);
+  border-radius: 0.75rem;
+  background: rgb(18 22 46 / 66%);
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.search-result-avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(30 35 65 / 70%);
+  border: 1px solid rgb(80 89 141 / 35%);
+}
+
+.result-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 999px;
+}
+
+.search-result-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-result-content .name {
+  margin: 0;
+  color: #f4f1ff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.send-request-btn {
+  flex-shrink: 0;
+}
+
+.search-result-item button {
+  border: 1px solid rgb(120 96 241 / 55%);
+  background: linear-gradient(135deg, rgb(99 61 230 / 88%), rgb(74 42 189 / 92%));
+  color: #f4f1ff;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgb(49 31 126 / 35%);
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.search-result-item button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgb(49 31 126 / 45%);
+  filter: brightness(1.06);
+}
+
+.search-result-item button:active {
+  transform: translateY(0);
+}
+
+.search-result-item button:focus-visible {
+  outline: 2px solid rgb(174 160 255 / 95%);
+  outline-offset: 2px;
 }
 
 .action-message {

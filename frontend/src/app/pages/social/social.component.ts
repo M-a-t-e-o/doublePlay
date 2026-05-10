@@ -8,6 +8,7 @@ import { SearchDropdownComponent } from '../../core/components/search-dropdown/s
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 import {
   FriendListItem,
+  FriendSearchResult,
   FriendRequestReceived,
   FriendRequestSent,
   SocialFeedEvent,
@@ -51,7 +52,11 @@ export class SocialComponent implements OnInit {
 
   friendSearchQuery = '';
   isAddFriendOpen = false;
-  requestUserId = '';
+  addFriendQuery = '';
+  addFriendResults: FriendSearchResult[] = [];
+  isSearchingUsers = false;
+  addFriendSearchError = '';
+  private addFriendSearchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   requestActionMessage = '';
 
   constructor(
@@ -109,6 +114,10 @@ export class SocialComponent implements OnInit {
 
   toggleAddFriend(): void {
     this.isAddFriendOpen = !this.isAddFriendOpen;
+
+    if (this.isAddFriendOpen) {
+      this.resetAddFriendSearch();
+    }
   }
 
   loadMoreFeed(): void {
@@ -176,6 +185,18 @@ export class SocialComponent implements OnInit {
     target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${fallbackSeed}`;
   }
 
+  getDefaultAvatarUrl(name: string): string {
+    const seed = encodeURIComponent(name || 'user');
+    return `https://api.dicebear.com/9.x/adventurer/svg?seed=${seed}`;
+  }
+
+  handleSearchResultAvatarError(event: Event, name: string | undefined): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target) return;
+
+    target.src = this.getDefaultAvatarUrl(name || 'user');
+  }
+
   private buildAvatarSeed(name: string | undefined, id: string | undefined): string {
     const safeId = (id || 'unknown').trim();
     const safeName = (name || 'user').trim();
@@ -205,17 +226,58 @@ export class SocialComponent implements OnInit {
     });
   }
 
-  sendFriendRequest(): void {
-    const userId = this.requestUserId.trim();
-    if (!userId) {
-      this.requestActionMessage = 'Introduce un userId válido.';
+  onAddFriendQueryChange(value: string): void {
+    this.addFriendQuery = value;
+    this.requestActionMessage = '';
+    this.addFriendSearchError = '';
+
+    if (this.addFriendSearchDebounceTimer) {
+      clearTimeout(this.addFriendSearchDebounceTimer);
+      this.addFriendSearchDebounceTimer = null;
+    }
+
+    const query = this.addFriendQuery.trim();
+    if (!query) {
+      this.addFriendResults = [];
+      this.isSearchingUsers = false;
       return;
     }
 
-    this.socialService.sendRequest(userId).subscribe({
+    if (query.length < 2) {
+      this.addFriendResults = [];
+      this.isSearchingUsers = false;
+      return;
+    }
+
+    this.isSearchingUsers = true;
+    this.addFriendSearchDebounceTimer = setTimeout(() => {
+      this.socialService.searchUsersByName(query).subscribe({
+        next: (results) => {
+          this.addFriendResults = results ?? [];
+          this.isSearchingUsers = false;
+        },
+        error: (error) => {
+          this.addFriendResults = [];
+          this.addFriendSearchError = error?.error?.message || 'No se pudo buscar usuarios.';
+          this.isSearchingUsers = false;
+        }
+      });
+    }, 300);
+  }
+
+  sendFriendRequest(userId: string): void {
+    const trimmedUserId = userId.trim();
+    if (!trimmedUserId) {
+      this.requestActionMessage = 'No se pudo identificar al usuario seleccionado.';
+      return;
+    }
+
+    this.socialService.sendRequest(trimmedUserId).subscribe({
       next: (response) => {
         this.requestActionMessage = response.message;
-        this.requestUserId = '';
+        this.addFriendQuery = '';
+        this.addFriendResults = [];
+        this.addFriendSearchError = '';
         this.isAddFriendOpen = false;
         this.loadFriendData();
       },
@@ -223,6 +285,18 @@ export class SocialComponent implements OnInit {
         this.requestActionMessage = error?.error?.message || 'No se pudo enviar la solicitud.';
       }
     });
+  }
+
+  private resetAddFriendSearch(): void {
+    this.addFriendQuery = '';
+    this.addFriendResults = [];
+    this.addFriendSearchError = '';
+    this.isSearchingUsers = false;
+
+    if (this.addFriendSearchDebounceTimer) {
+      clearTimeout(this.addFriendSearchDebounceTimer);
+      this.addFriendSearchDebounceTimer = null;
+    }
   }
 
 

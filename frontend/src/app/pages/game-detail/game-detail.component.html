@@ -7,7 +7,14 @@
         [placeholder]="'Search movies, games...'"
         [label]="'Search'">
       </app-search-dropdown>
-      <button class="profile-button" type="button" routerLink="/profile">U</button>
+      <button class="profile-button" type="button" routerLink="/profile" aria-label="Open profile">
+        <img
+          class="profile-button-image"
+          [src]="currentUserAvatarUrl"
+          (error)="handleCurrentUserAvatarError($event)"
+          alt="User avatar"
+        />
+      </button>
     </header>
 
     <header class="detail-header">

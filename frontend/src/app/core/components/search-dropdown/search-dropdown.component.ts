@@ -22,6 +22,7 @@ export class SearchDropdownComponent implements OnDestroy {
   isOpen = false;
   isSearching = false;
   selectedIndex = -1;
+  isMouseInDropdown = false;
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -60,10 +61,20 @@ export class SearchDropdownComponent implements OnDestroy {
   }
 
   onBlur(): void {
-    // Delay to allow click on dropdown items
+    // Delay to allow click on dropdown items, but only if mouse is not over dropdown
     setTimeout(() => {
-      this.isOpen = false;
+      if (!this.isMouseInDropdown) {
+        this.isOpen = false;
+      }
     }, 200);
+  }
+
+  onDropdownMouseEnter(): void {
+    this.isMouseInDropdown = true;
+  }
+
+  onDropdownMouseLeave(): void {
+    this.isMouseInDropdown = false;
   }
 
   onKeyDown(event: Event): void {

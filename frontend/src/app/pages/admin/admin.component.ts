@@ -3,10 +3,10 @@ import { Component } from '@angular/core';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
 
 @Component({
-  selector: 'app-placeholder',
+  selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, SidebarComponent],
-  templateUrl: './placeholder.component.html',
-  styleUrl: './placeholder.component.scss'
+  templateUrl: './admin.component.html',
+  styleUrl: './admin.component.scss'
 })
-export class PlaceholderComponent {}
+export class AdminComponent {}
