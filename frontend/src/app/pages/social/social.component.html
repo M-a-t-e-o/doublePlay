@@ -204,8 +204,9 @@
               <div class="friend-avatar-wrap">
                 <img
                   class="friend-avatar"
-                  [src]="'https://api.dicebear.com/9.x/adventurer/svg?seed=' + getFriendAvatarSeed(friend)"
-                  [alt]="friend.user.name" />
+                  [src]="getFriendAvatarUrl(friend)"
+                  [alt]="friend.user.name"
+                  (error)="handleFriendAvatarError($event, friend)" />
               </div>
 
               <div class="friend-main">

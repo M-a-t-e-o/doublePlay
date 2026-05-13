@@ -49,6 +49,8 @@ export interface FriendListItem {
   user: {
     _id: string;
     name: string;
+    username?: string;
+    profilePicture?: unknown;
   };
 }
 

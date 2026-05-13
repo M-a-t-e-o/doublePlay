@@ -15,6 +15,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class RegisterComponent {
   activeLegalModal: 'terms' | 'privacy' | null = null;
   fullName = '';
+  username = '';
   email = '';
   password = '';
   confirmPassword = '';
@@ -36,8 +37,15 @@ export class RegisterComponent {
   onSubmitRegister(): void {
     this.errorMessage = '';
 
-    if (!this.fullName || !this.email || !this.password || !this.confirmPassword) {
+    const cleanUsername = this.username.trim().toLowerCase();
+
+    if (!this.fullName || !cleanUsername || !this.email || !this.password || !this.confirmPassword) {
       this.errorMessage = 'Please complete all required fields.';
+      return;
+    }
+
+    if (!/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
+      this.errorMessage = 'Username must be 3-30 characters and use only lowercase letters, numbers or underscores.';
       return;
     }
 
@@ -55,6 +63,7 @@ export class RegisterComponent {
 
     this.authService.register({
       name: this.fullName,
+      username: cleanUsername,
       email: this.email,
       password: this.password
     }).subscribe({

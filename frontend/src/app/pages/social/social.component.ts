@@ -165,6 +165,17 @@ export class SocialComponent implements OnInit {
     return this.buildAvatarSeed(friend.user.name, friend.user._id);
   }
 
+  getFriendAvatarUrl(friend: FriendListItem): string {
+    return `${this.api}/auth/profile-picture/${friend.user._id}`;
+  }
+
+  handleFriendAvatarError(event: Event, friend: FriendListItem): void {
+    const target = event.target as HTMLImageElement | null;
+    if (!target) return;
+
+    target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.getFriendAvatarSeed(friend))}`;
+  }
+
   getFeedAvatarUrl(event: SocialFeedEvent): string {
     const user = event.user;
     const seed = this.buildAvatarSeed(user?.name, user?._id);
