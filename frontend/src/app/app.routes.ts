@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AIChatComponent } from './pages/ai-chat/ai-chat.component';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
 	{
@@ -63,6 +64,7 @@ export const routes: Routes = [
 	},
 	{
 		path: 'admin',
+		canActivate: [adminGuard],
 		loadComponent: () =>
 			import('./pages/admin/admin.component').then((m) => m.AdminComponent)
 	},

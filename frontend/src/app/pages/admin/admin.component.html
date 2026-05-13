@@ -1,5 +1,199 @@
 <div class="admin-shell">
   <app-sidebar></app-sidebar>
 
-  <main class="admin-content" aria-label="Admin panel"></main>
+  <main class="admin-content" aria-label="Admin panel">
+    <header class="admin-topbar">
+      <app-search-dropdown
+        [placeholder]="'Search movies, games...'"
+        [label]="'Search'">
+      </app-search-dropdown>
+
+      <button class="profile-button" type="button" aria-label="Admin profile">
+        <img
+          class="profile-button-image"
+          [src]="adminAvatarUrl"
+          [alt]="adminName + ' avatar'"
+          (error)="handleAdminAvatarError($event)" />
+      </button>
+    </header>
+
+    <section class="admin-inner">
+      <header class="dashboard-header">
+        <div class="title-block">
+          <div class="title-row">
+            <span class="title-icon material-symbols-outlined" aria-hidden="true">shield</span>
+            <h1>Admin Dashboard</h1>
+            <span class="restricted-badge">Restricted</span>
+          </div>
+          <p>Global platform analytics and management</p>
+        </div>
+
+        <div class="header-actions">
+          <p class="computed-label">Updated {{ lastComputedLabel }}</p>
+          <button class="ghost-btn" type="button" (click)="refreshStats()" [disabled]="isLoading">
+            <span class="material-symbols-outlined" aria-hidden="true">sync</span>
+            {{ isLoading ? 'Refreshing' : 'Refresh' }}
+          </button>
+          <div class="export-menu-container">
+            <button class="primary-btn" type="button" (click)="toggleExportMenu()" [disabled]="!stats">
+              <span class="material-symbols-outlined" aria-hidden="true">download</span>
+              Export
+              <span class="material-symbols-outlined" aria-hidden="true">arrow_drop_down</span>
+            </button>
+            @if (showExportMenu) {
+              <div class="export-menu">
+                <button class="export-option" (click)="exportStats('csv')">
+                  <span>CSV</span>
+                  <span class="export-desc">Spreadsheet format</span>
+                </button>
+                <button class="export-option" (click)="exportStats('json')">
+                  <span>JSON</span>
+                  <span class="export-desc">Data format</span>
+                </button>
+                <button class="export-option" (click)="exportStats('html')">
+                  <span>HTML</span>
+                  <span class="export-desc">Interactive table</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </header>
+
+      <aside class="warning-banner">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        <p>You are viewing the Admin Panel. Changes made here affect all users. Proceed with caution.</p>
+      </aside>
+
+      @if (errorMessage) {
+        <p class="error-banner">{{ errorMessage }}</p>
+      }
+
+      @if (!stats && isLoading) {
+        <section class="loading-panel">
+          <span class="material-symbols-outlined" aria-hidden="true">progress_activity</span>
+          <p>Loading platform statistics...</p>
+        </section>
+      }
+
+      @if (stats) {
+        <section class="metric-grid" aria-label="Platform metrics">
+          @for (card of metricCards; track trackMetric($index, card)) {
+            <article class="metric-card" [class]="'metric-card metric-card--' + card.tone">
+              <div class="metric-card-top">
+                <span class="metric-icon material-symbols-outlined" aria-hidden="true">{{ card.icon }}</span>
+                @if (card.trend) {
+                  <span class="trend-pill">{{ card.trend }}</span>
+                }
+              </div>
+              <p class="metric-value">{{ card.value }}</p>
+              <p class="metric-label">{{ card.label }}</p>
+              <p class="metric-detail">{{ card.detail }}</p>
+            </article>
+          }
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel">
+            <header class="panel-header">
+              <div>
+                <h2>
+                  <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                  User Growth
+                </h2>
+                <p>Running total for the last 7 months</p>
+              </div>
+            </header>
+            <div class="chart-box chart-box--line">
+              <canvas #userGrowthChart aria-label="User growth chart"></canvas>
+            </div>
+          </article>
+
+          <article class="panel">
+            <header class="panel-header">
+              <div>
+                <h2>
+                  <span class="material-symbols-outlined" aria-hidden="true">video_library</span>
+                  Content Split
+                </h2>
+                <p>Movies and games in the catalog</p>
+              </div>
+            </header>
+            <div class="split-layout">
+              <div class="chart-box chart-box--donut">
+                <canvas #contentSplitChart aria-label="Content split chart"></canvas>
+              </div>
+              <div class="split-legend">
+                @for (item of contentLegend; track trackLegend($index, item)) {
+                  <div class="legend-item">
+                    <span class="legend-dot" [style.background]="item.color"></span>
+                    <div>
+                      <p class="legend-label">{{ item.label }}</p>
+                      <strong>{{ item.value }}</strong>
+                      <span>{{ item.percentage }}%</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel panel--wide">
+            <header class="panel-header">
+              <div>
+                <h2>
+                  <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+                  Content by Genre
+                </h2>
+                <p>Movies vs. Games percentage by genre</p>
+              </div>
+            </header>
+            <div class="chart-box chart-box--bar">
+              <canvas #genreChart aria-label="Content by genre chart"></canvas>
+            </div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <header class="panel-header">
+            <div>
+              <h2>
+                <span class="material-symbols-outlined" aria-hidden="true">trending_up</span>
+                Top Performing Content
+              </h2>
+              <p>Content sorted by views and engagement</p>
+            </div>
+          </header>
+
+          <div class="top-performing-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Type</th>
+                  <th>Views</th>
+                  <th>Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of stats.topContent; track trackContent($index, item)) {
+                  <tr>
+                    <td class="title-cell">{{ item.title }}</td>
+                    <td class="type-cell"><span class="type-badge" [class]="'type-badge--' + item.type">{{ item.type === 'movie' ? 'Movie' : 'Game' }}</span></td>
+                    <td class="views-cell">{{ (item.views || item.ratingCount || 0) | number }}{{ item.views ? 'k' : '' }}</td>
+                    <td class="rating-cell">
+                      <span class="material-symbols-outlined" aria-hidden="true">star</span>
+                      {{ item.avgRating.toFixed(1) }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    </section>
+  </main>
 </div>

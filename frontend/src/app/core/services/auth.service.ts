@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http'
 import { BehaviorSubject } from 'rxjs'
 import { environment } from '../../../environments/environment'
 
+type AuthTokenPayload = {
+  id?: string
+  role?: 'user' | 'admin'
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = environment.apiUrl
@@ -13,12 +18,12 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  register(data: { name: string, email: string, password: string }) {
+  register(data: { name: string, username: string, email: string, password: string }) {
     return this.http.post(`${this.api}/auth/register`, data)
   }
 
   login(data: { email: string, password: string }) {
-    return this.http.post<{ token: string, name: string }>(`${this.api}/auth/login`, data)
+    return this.http.post<{ token: string, name: string, role?: 'user' | 'admin' }>(`${this.api}/auth/login`, data)
   }
 
   saveToken(token: string) {
@@ -46,7 +51,7 @@ export class AuthService {
     return !!this.getToken()
   }
 
-  getUserIdFromToken(): string | null {
+  getTokenPayload(): AuthTokenPayload | null {
     const token = this.getToken()
     if (!token) return null
 
@@ -54,11 +59,24 @@ export class AuthService {
       const parts = token.split('.')
       if (parts.length !== 3) return null
 
-      const payload = JSON.parse(atob(parts[1])) as { id?: string }
-      return payload.id || null
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+      const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=')
+      return JSON.parse(atob(padded)) as AuthTokenPayload
     } catch {
       return null
     }
+  }
+
+  getUserIdFromToken(): string | null {
+    return this.getTokenPayload()?.id || null
+  }
+
+  getUserRoleFromToken(): 'user' | 'admin' | null {
+    return this.getTokenPayload()?.role || null
+  }
+
+  isAdmin(): boolean {
+    return this.getUserRoleFromToken() === 'admin'
   }
 
   getAvatarCacheBust() {

@@ -27,7 +27,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isMobileMenuOpen = false;
   avatarCacheBust: number = Date.now();
 
-  readonly navItems: NavItem[] = [
+  private readonly baseNavItems: NavItem[] = [
     { label: 'Home', route: '/home', icon: 'home' },
     { label: 'Movies', route: '/movies', icon: 'movie' },
     { label: 'Games', route: '/games', icon: 'stadia_controller' },
@@ -54,6 +54,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
+  }
+
+  get navItems(): NavItem[] {
+    return this.baseNavItems.filter((item) => item.route !== '/admin' || this.authService.isAdmin());
   }
 
   get displayName(): string {
