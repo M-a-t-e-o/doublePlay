@@ -37,7 +37,12 @@
             (change)="onProfilePictureSelected($event)" />
         </div>
         <div class="profile-meta">
-          <h1>{{ profileName }}</h1>
+          <div class="title-row">
+            <h1>{{ profileName }}</h1>
+            @if (profileRole === 'admin') {
+              <span class="admin-badge">Admin</span>
+            }
+          </div>
           <p class="handle">&#64;{{ profileHandle }} · {{ memberSinceLabel }}</p>
           <div class="quick-stats">
             <div class="stat"><strong>{{ movieCount }}</strong><span>Movies watched</span></div>
@@ -45,6 +50,18 @@
             <div class="stat"><strong>{{ wishlistCount }}</strong><span>Wishlisted</span></div>
           </div>
         </div>
+      </div>
+      <div class="profile-actions">
+        @if (profileRole === 'admin') {
+          <button type="button" class="action-btn admin-btn" (click)="goToAdminPanel()">
+            <span class="material-symbols-outlined">shield</span>
+            Admin
+          </button>
+        }
+        <button type="button" class="action-btn settings-btn">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </button>
       </div>
     </section>
 

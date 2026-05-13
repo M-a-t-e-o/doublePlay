@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService, ProfileData, ContentListResponse } from '../../core/services/profile.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
@@ -60,6 +61,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   gamesCount: number = 0;
   wishlistCount: number = 0;
   profileName: string = '';
+  profileUsername: string = '';
+  profileRole: 'user' | 'admin' | undefined = undefined;
   memberSinceLabel: string = 'Member since';
   
   activeLibraryTab: 'history' | 'wishlist' = 'history';
@@ -91,8 +94,13 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private profileService: ProfileService
+    private profileService: ProfileService,
+    private router: Router
   ) {}
+
+  goToAdminPanel(): void {
+    this.router.navigate(['/admin']);
+  }
 
   ngOnInit(): void {
     this.profileName = this.getSessionNameFallback();
@@ -122,7 +130,10 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.gamesCount = data.counts.gamesPlayed;
         this.wishlistCount = data.counts.totalWishlisted;
         const backendName = (data.user.name || '').trim();
+        const backendUsername = (data.user.username || '').trim();
         this.profileName = backendName || this.getSessionNameFallback();
+        this.profileUsername = backendUsername;
+        this.profileRole = this.authService.getUserRoleFromToken() || undefined;
         this.memberSinceLabel = this.formatMemberSince(data.user.createdAt);
         
         // Process monthly activity
@@ -444,6 +455,10 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get profileHandle(): string {
+    if (this.profileUsername) {
+      return this.profileUsername;
+    }
+
     return this.profileName
       .toLowerCase()
       .trim()

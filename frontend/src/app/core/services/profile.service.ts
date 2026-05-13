@@ -7,6 +7,8 @@ export interface ProfileData {
   user: {
     id: string;
     name: string;
+    username: string;
+    role?: 'user' | 'admin';
     createdAt: string;
     hasProfilePicture: boolean;
   };

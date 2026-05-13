@@ -59,6 +59,8 @@ export interface FriendRequestReceived {
   sender: {
     _id: string;
     name: string;
+    username?: string;
+    profilePicture?: unknown;
   };
   receiver: string;
   status: 'pending' | 'accepted';
@@ -71,8 +73,9 @@ export interface FriendRequestSent {
   receiver: {
     _id: string;
     name: string;
+    username?: string;
     email?: string;
-    profilePicture?: string;
+    profilePicture?: unknown;
   };
   status: 'pending' | 'accepted';
   createdAt: string;
@@ -81,7 +84,8 @@ export interface FriendRequestSent {
 export interface FriendSearchResult {
   id: string;
   name: string;
-  profilePicture?: string;
+  username?: string;
+  profilePicture?: unknown;
 }
 
 @Injectable({

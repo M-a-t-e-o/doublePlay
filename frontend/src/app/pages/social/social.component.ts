@@ -64,6 +64,10 @@ export class SocialComponent implements OnInit {
     private authService: AuthService
   ) {}
 
+  getProfilePictureUrl(userId: string): string {
+    return `${this.api}/auth/profile-picture/${userId}`;
+  }
+
   ngOnInit(): void {
     this.loadFeed(1, true);
     this.loadFriendData();

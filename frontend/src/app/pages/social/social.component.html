@@ -174,13 +174,16 @@
                   <article class="search-result-item">
                     <div class="search-result-avatar">
                       <img
-                        [src]="user.profilePicture || getDefaultAvatarUrl(user.name || 'user')"
+                        [src]="user.profilePicture ? getProfilePictureUrl(user.id) : getDefaultAvatarUrl(user.name || 'user')"
                         [alt]="user.name || 'User avatar'"
                         (error)="handleSearchResultAvatarError($event, user.name)"
                         class="result-avatar-image" />
                     </div>
                     <div class="search-result-content">
-                      <p class="name">{{ user.name }}</p>
+                      <div class="name-row">
+                        <p class="name">{{ user.name }}</p>
+                        <p class="search-result-username">&#64;{{ user['username'] || user.name || 'user' }}</p>
+                      </div>
                     </div>
                     <button type="button" (click)="sendFriendRequest(user.id)" class="send-request-btn">Send request</button>
                   </article>
@@ -210,7 +213,10 @@
               </div>
 
               <div class="friend-main">
-                <p class="friend-name">{{ friend.user.name }}</p>
+                <div class="name-row">
+                  <p class="friend-name">{{ friend.user.name }}</p>
+                  <p class="search-result-username">&#64;{{ friend.user['username'] || friend.user.name || 'user' }}</p>
+                </div>
               </div>
 
               <button type="button" class="remove-friend" (click)="removeFriend(friend.user._id)">Remove</button>
@@ -233,9 +239,21 @@
               <div class="request-row-wrap">
                 @for (request of receivedRequests; track trackRequest($index, request)) {
                   <article class="request-row">
-                    <div>
-                      <p class="name">{{ request.sender.name }}</p>
-                      <p class="subtitle">wants to be your friend</p>
+                    <div class="request-left">
+                      <div class="request-avatar">
+                        <img
+                          [src]="request.sender.profilePicture ? getProfilePictureUrl(request.sender._id) : getDefaultAvatarUrl(request.sender.name || 'user')"
+                          [alt]="request.sender.name || 'User avatar'"
+                          (error)="handleSearchResultAvatarError($event, request.sender.name)"
+                        />
+                      </div>
+                      <div class="request-meta">
+                        <div class="name-row">
+                          <p class="name">{{ request.sender.name }}</p>
+                          <p class="request-username">&#64;{{ request.sender['username'] || request.sender.name || 'user' }}</p>
+                        </div>
+                        <p class="subtitle">wants to be your friend</p>
+                      </div>
                     </div>
                     <div class="actions">
                       <button type="button" (click)="acceptRequest(request._id)">Accept</button>
@@ -250,9 +268,21 @@
               <div class="request-row-wrap">
                 @for (request of sentRequests; track trackRequest($index, request)) {
                   <article class="request-row">
-                    <div>
-                      <p class="name">{{ request.receiver.name }}</p>
-                      <p class="subtitle">request sent</p>
+                    <div class="request-left">
+                      <div class="request-avatar">
+                        <img
+                          [src]="request.receiver.profilePicture ? getProfilePictureUrl(request.receiver._id) : getDefaultAvatarUrl(request.receiver.name || 'user')"
+                          [alt]="request.receiver.name || 'User avatar'"
+                          (error)="handleSearchResultAvatarError($event, request.receiver.name)"
+                        />
+                      </div>
+                      <div class="request-meta">
+                        <div class="name-row">
+                          <p class="name">{{ request.receiver.name }}</p>
+                          <p class="request-username">&#64;{{ request.receiver['username'] || request.receiver.name || 'user' }}</p>
+                        </div>
+                        <p class="subtitle">request sent</p>
+                      </div>
                     </div>
                     <button type="button" class="danger" (click)="rejectOrCancelRequest(request._id)">Cancel</button>
                   </article>
