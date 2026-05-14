@@ -26,7 +26,49 @@ function isStrongPassword(password) {
 }
 
 function isValidUsername(username) {
-  return typeof username === 'string' && USERNAME_REGEX.test(username.toLowerCase().trim());
+  return typeof username === 'string' && USERNAME_REGEX.test(normalizeUsername(username));
+}
+
+function normalizeUsername(username) {
+  return username.toLowerCase().trim();
+}
+
+function getTokenFromRequest(req) {
+  const authHeader = req.headers.authorization || '';
+  return authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+}
+
+function buildPublicUser(user) {
+  return {
+    id: String(user._id),
+    name: user.name,
+    username: user.username,
+    hasProfilePicture: Boolean(user.profilePicture?.data)
+  };
+}
+
+async function getAuthenticatedUser(req, res) {
+  const token = getTokenFromRequest(req);
+
+  if (!token) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return null;
+  }
+
+  try {
+    const { id } = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(id);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return null;
+    }
+
+    return user;
+  } catch (err) {
+    res.status(401).json({ message: 'Unauthorized' });
+    return null;
+  }
 }
 
 
@@ -105,9 +147,11 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    const normalizedUsername = normalizeUsername(username);
+
     const [emailExists, usernameExists] = await Promise.all([
       User.findOne({ email }),
-      User.findOne({ username: username.toLowerCase().trim() })
+      User.findOne({ username: normalizedUsername })
     ]);
 
     if (emailExists)    return res.status(400).json({ message: 'Email already in use' });
@@ -116,7 +160,7 @@ router.post('/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({
       name,
-      username: username.toLowerCase().trim(),
+      username: normalizedUsername,
       email,
       password: hashed
     });
@@ -273,13 +317,12 @@ router.post('/login', async (req, res) => {
  */
 router.post('/change-password', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-
-    if (!token) return res.status(401).json({ message: 'Unauthorized' });
-
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
     const { currentPassword, newPassword } = req.body;
+    const user = await getAuthenticatedUser(req, res);
+
+    if (!user) {
+      return;
+    }
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Current password and new password are required' });
@@ -290,9 +333,6 @@ router.post('/change-password', async (req, res) => {
         message: 'Password must be at least 8 characters and include one uppercase letter, one number and one symbol'
       });
     }
-
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
 
     const match = await bcrypt.compare(currentPassword, user.password);
     if (!match) return res.status(400).json({ message: 'Current password is incorrect' });
@@ -305,10 +345,179 @@ router.post('/change-password', async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    return res.json({ message: 'Password updated successfully' });
+    return res.json({
+      message: 'Password updated successfully',
+      user: buildPublicUser(user)
+    });
   } catch (err) {
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change name
+/**
+ * @swagger
+ * /change-name:
+ *   post:
+ *     summary: Cambiar el nombre del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Juan Pérez"
+ *     responses:
+ *       200:
+ *         description: Nombre actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Name updated successfully"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     hasProfilePicture:
+ *                       type: boolean
+ *       400:
+ *         description: Error de validación o nombre faltante
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/change-name', async (req, res) => {
+  try {
+    const { name } = req.body;
+    const user = await getAuthenticatedUser(req, res);
+
+    if (!user) {
+      return;
+    }
+
+    const normalizedName = typeof name === 'string' ? name.trim() : '';
+
+    if (!normalizedName) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    user.name = normalizedName;
+    await user.save();
+
+    return res.json({
+      message: 'Name updated successfully',
+      user: buildPublicUser(user)
+    });
+  } catch (err) {
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Change username
+/**
+ * @swagger
+ * /change-username:
+ *   post:
+ *     summary: Cambiar el nombre de usuario del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: "juanp88"
+ *                 description: Nombre de usuario único. Solo letras minúsculas, números y guión bajo. Entre 3 y 30 caracteres.
+ *     responses:
+ *       200:
+ *         description: Nombre de usuario actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Username updated successfully"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     hasProfilePicture:
+ *                       type: boolean
+ *       400:
+ *         description: Error de validación, username inválido o en uso
+ *       401:
+ *         description: No autorizado
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/change-username', async (req, res) => {
+  try {
+    const { username } = req.body;
+    const user = await getAuthenticatedUser(req, res);
+
+    if (!user) {
+      return;
+    }
+
+    if (!isValidUsername(username)) {
+      return res.status(400).json({
+        message: 'Username must be 3–30 characters and contain only lowercase letters, numbers and underscores'
+      });
+    }
+
+    const normalizedUsername = normalizeUsername(username);
+    const usernameExists = await User.findOne({ username: normalizedUsername, _id: { $ne: user._id } });
+
+    if (usernameExists) {
+      return res.status(400).json({ message: 'Username already in use' });
+    }
+
+    user.username = normalizedUsername;
+    await user.save();
+
+    return res.json({
+      message: 'Username updated successfully',
+      user: buildPublicUser(user)
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'Username already in use' });
     }
 
     return res.status(500).json({ message: 'Server error' });
@@ -346,6 +555,17 @@ router.post('/change-password', async (req, res) => {
  *                 message:
  *                   type: string
  *                   example: "Profile picture updated successfully"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     hasProfilePicture:
+ *                       type: boolean
  *       400:
  *         description: Error en el archivo (no se envió archivo, formato inválido o demasiado grande)
  *         content:
@@ -365,19 +585,15 @@ router.post('/change-password', async (req, res) => {
  */
 router.post('/profile-picture', upload.single('profilePicture'), async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+    const user = await getAuthenticatedUser(req, res);
 
-    if (!token) return res.status(401).json({ message: 'Unauthorized' });
-
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
+    if (!user) {
+      return;
+    }
 
     if (!req.file) {
       return res.status(400).json({ message: 'No file provided' });
     }
-
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Backward compatibility: legacy users may not have the nested field in stored documents.
     if (!user.profilePicture) {
@@ -388,11 +604,11 @@ router.post('/profile-picture', upload.single('profilePicture'), async (req, res
     user.profilePicture.contentType = req.file.mimetype;
     await user.save();
 
-    res.json({ message: 'Profile picture updated successfully' });
+    res.json({
+      message: 'Profile picture updated successfully',
+      user: buildPublicUser(user)
+    });
   } catch (err) {
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
     if (err.message.includes('Invalid file type')) {
       return res.status(400).json({ message: err.message });
     }
@@ -502,15 +718,11 @@ router.get('/profile-picture/:userId', async (req, res) => {
  */
 router.delete('/profile-picture', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+    const user = await getAuthenticatedUser(req, res);
 
-    if (!token) return res.status(401).json({ message: 'Unauthorized' });
-
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return;
+    }
 
     if (!user.profilePicture?.data) {
       return res.status(404).json({ message: 'Profile picture not found' });
@@ -524,11 +736,11 @@ router.delete('/profile-picture', async (req, res) => {
     user.profilePicture.contentType = null;
     await user.save();
 
-    res.json({ message: 'Profile picture deleted successfully' });
+    res.json({
+      message: 'Profile picture deleted successfully',
+      user: buildPublicUser(user)
+    });
   } catch (err) {
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
     res.status(500).json({ message: 'Server error' });
   }
 });
