@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema({
   profilePicture: {
     data: { type: Buffer, default: null },
     contentType: { type: String, default: null }
+  },
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 
