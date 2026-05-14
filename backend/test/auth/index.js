@@ -80,7 +80,8 @@ async function run() {
     email: '',
     password: '',
     username: '',
-    role: ''
+    role: '',
+    recoveryToken: ''
   };
 
   while (true) {
@@ -93,6 +94,9 @@ async function run() {
     console.log('6) Probar register con username invalido (debe fallar)');
     console.log('7) Probar login con cuenta baneada (debe dar 403)');
     console.log('8) Mostrar estado actual (token/email/username/role)');
+    console.log('9) Forgot password (solicitar recuperacion)');
+    console.log('10) Reset password (cambiar contrasena con token)');
+    console.log('11) Test forgot password con email inexistente');
     console.log('0) Salir');
 
     const option = await ask('> ');
@@ -203,7 +207,48 @@ async function run() {
         console.log(`role:     ${state.role     || '(vacio)'}`);
         console.log(`token:    ${state.token    ? '(guardado)' : '(vacio)'}`);
         console.log(`password: ${state.password ? '(guardada)' : '(vacia)'}`);
+        console.log(`recoveryToken: ${state.recoveryToken ? '(guardado)' : '(vacio)'}`)
         console.log('');
+
+      } else if (option === '9') {
+        const email = (await ask(`Email para recuperacion [${state.email || 'none'}]: `)) || state.email;
+
+        const res = await requestJson(`${baseUrl}/forgot-password`, 'POST', { email });
+
+        printResponse('FORGOT PASSWORD', res);
+
+      } else if (option === '10') {
+        const token = await ask('Token de recuperacion (de email o estado): ');
+        const actualToken = token || state.recoveryToken;
+        const newPassword = await ask('Nueva contrasena: ');
+
+        if (!actualToken) {
+          console.log('\n[!] No hay token disponible. Primero solicita recuperacion (opcion 9).\n');
+          continue;
+        }
+
+        const res = await requestJson(`${baseUrl}/reset-password`, 'POST', { 
+          token: actualToken,
+          newPassword 
+        });
+
+        if (res.ok) {
+          state.password = newPassword;
+          state.recoveryToken = '';
+        }
+
+        printResponse('RESET PASSWORD', res);
+
+      } else if (option === '11') {
+        const randomEmail = `nonexistent_${Date.now()}@test.com`;
+        
+        console.log(`\n[*] Enviando recuperacion a email inexistente: ${randomEmail}\n`);
+        
+        const res = await requestJson(`${baseUrl}/forgot-password`, 'POST', { 
+          email: randomEmail 
+        });
+
+        printResponse('FORGOT PASSWORD CON EMAIL INEXISTENTE (EXPECTED 200 - SILENT SUCCESS)', res);
 
       } else if (option === '0') {
         console.log('\nSaliendo...');

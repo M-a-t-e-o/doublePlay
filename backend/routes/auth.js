@@ -2,8 +2,10 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const crypto = require('crypto');
 const User = require('../module/user/user.model');
 const swaggerJsdoc = require('swagger-jsdoc');
+const { sendPasswordRecoveryEmail } = require('../utils/emailService');
 
 // Configure multer for profile pictures
 const upload = multer({
@@ -69,6 +71,10 @@ async function getAuthenticatedUser(req, res) {
     res.status(401).json({ message: 'Unauthorized' });
     return null;
   }
+}
+
+function generateSecureToken() {
+  return crypto.randomBytes(32).toString('hex');
 }
 
 
@@ -742,6 +748,184 @@ router.delete('/profile-picture', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Forgot password - Request password recovery
+/**
+ * @swagger
+ * /forgot-password:
+ *   post:
+ *     summary: Solicitar recuperación de contraseña
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "usuario@ejemplo.com"
+ *     responses:
+ *       200:
+ *         description: Correo de recuperación enviado (incluso si el email no existe, por seguridad)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "If an account with that email exists, a recovery link has been sent"
+ *       400:
+ *         description: Email no válido o faltante
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find user by email
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Always return 200 to prevent email enumeration
+    if (!user) {
+      return res.status(200).json({
+        message: 'If an account with that email exists, a recovery link has been sent'
+      });
+    }
+
+    // Generate secure reset token
+    const resetToken = generateSecureToken();
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Set token and expiry (1 hour)
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    await user.save();
+
+    // Send recovery email
+    const emailSent = await sendPasswordRecoveryEmail(normalizedEmail, resetToken);
+
+    if (!emailSent) {
+      // Clear the reset token if email failed to send
+      user.passwordResetToken = null;
+      user.passwordResetExpires = null;
+      await user.save();
+
+      return res.status(500).json({ message: 'Failed to send recovery email' });
+    }
+
+    return res.status(200).json({
+      message: 'If an account with that email exists, a recovery link has been sent'
+    });
+  } catch (err) {
+    console.error('Error in forgot-password:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reset password - Verify token and set new password
+/**
+ * @swagger
+ * /reset-password:
+ *   post:
+ *     summary: Restablecer contraseña con token de recuperación
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 example: "abc123def456..."
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: "NewPassword123!"
+ *                 description: Mínimo 8 caracteres, una mayúscula, un número y un símbolo.
+ *     responses:
+ *       200:
+ *         description: Contraseña restablecida correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Password reset successfully"
+ *       400:
+ *         description: Token inválido/expirado, contraseña débil o campos faltantes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        message: 'Password must be at least 8 characters and include one uppercase letter, one number and one symbol'
+      });
+    }
+
+    // Hash the token to find the user
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find user with matching reset token and check expiry
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: 'Recovery link is invalid or has expired'
+      });
+    }
+
+    // Update password
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Password reset successfully'
+    });
+  } catch (err) {
+    console.error('Error in reset-password:', err);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
