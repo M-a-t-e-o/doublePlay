@@ -1,3 +1,12 @@
+/**
+ * test/reviews/index.js
+ *
+ * Suite interactiva de pruebas para reseñas y respuestas.
+ *
+ * Permite comprobar la creación, listado, edición y eliminación de reseñas
+ * sobre películas y videojuegos, así como la creación de respuestas asociadas
+ * a reseñas raíz.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

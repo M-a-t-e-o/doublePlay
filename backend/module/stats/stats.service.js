@@ -1,3 +1,16 @@
+/**
+ * module/stats/stats.service.js
+ *
+ * Servicio encargado de calcular y recuperar las estadísticas globales
+ * de la plataforma doublePlay.
+ *
+ * Calcula métricas de usuarios, crecimiento mensual, cantidad de contenido,
+ * valoración media global, visualizaciones, distribución por géneros y contenido
+ * mejor valorado.
+ *
+ * Utiliza una estrategia de caché temporal para evitar recalcular estadísticas
+ * en cada petición administrativa.
+ */
 const mongoose  = require('mongoose');
 const User        = require('../user/user.model');
 const Movie       = require('../movies/movie.model');

@@ -1,3 +1,14 @@
+/**
+ * test/auth/index.js
+ *
+ * Suite interactiva de pruebas para el módulo de autenticación.
+ *
+ * Permite comprobar el registro, inicio de sesión, cambio de contraseña,
+ * validación de políticas de contraseña, validación de username, acceso
+ * de usuarios baneados y flujo de recuperación de contraseña.
+ *
+ * Las pruebas se realizan contra la API HTTP del backend.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

@@ -1,3 +1,15 @@
+/**
+ * routes/social.js
+ *
+ * Define los endpoints sociales de la aplicación.
+ *
+ * Actualmente proporciona el feed social del usuario autenticado, construido
+ * a partir de las interacciones y reseñas recientes de sus amigos aceptados.
+ * El feed incluye eventos como contenido visto o jugado, elementos añadidos
+ * a la wishlist y reseñas publicadas.
+ *
+ * Todas las rutas de este módulo requieren autenticación mediante JWT.
+ */
 const router = require('express').Router();
 const Friendship  = require('../module/user/friendship.model');
 const Interaction = require('../module/interaction/interaction.model');
@@ -16,6 +28,50 @@ router.use(authRequired);
 // Query params:
 //   page  → número de página (default: 1)
 //   limit → eventos por página (default: 20, max: 50)
+
+/**
+ * @swagger
+ * /social/feed:
+ *   get:
+ *     summary: Obtener feed social del usuario
+ *     description: Devuelve eventos recientes de amigos aceptados del usuario autenticado, incluyendo contenido visto/jugado, wishlist y reseñas.
+ *     tags: [Social]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 50
+ *     responses:
+ *       200:
+ *         description: Feed social paginado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/SocialEvent'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/feed', async (req, res) => {
   try {
     const userId = req.userId;

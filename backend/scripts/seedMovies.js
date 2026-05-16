@@ -1,3 +1,16 @@
+/**
+ * scripts/seedMovies.js
+ *
+ * Script de carga inicial de películas desde The Movie Database.
+ *
+ * Obtiene películas desde distintos endpoints de TMDb, como populares,
+ * mejor valoradas y listados por género, recupera el detalle completo
+ * de cada película, transforma los datos al modelo interno y los inserta
+ * o actualiza en MongoDB.
+ *
+ * Debe ejecutarse manualmente durante la inicialización o mantenimiento
+ * del catálogo de películas.
+ */
 require('dotenv').config({ path: './.env' });
 const axios    = require('axios');
 const mongoose = require('mongoose');

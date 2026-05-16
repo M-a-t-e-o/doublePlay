@@ -1,3 +1,13 @@
+/**
+ * module/movies/tmdbService.js
+ *
+ * Servicio encargado de la integración con The Movie Database API.
+ *
+ * Proporciona funciones para obtener datos de películas desde TMDb,
+ * transformar la respuesta externa al formato interno usado por el modelo
+ * Movie y aplicar una estrategia de caché local basada en la fecha de
+ * actualización del documento.
+ */
 const axios  = require('axios');
 const Movie  = require('./movie.model');
 

@@ -1,3 +1,12 @@
+/**
+ * test/interactions/index.js
+ *
+ * Suite interactiva de pruebas para las interacciones de usuario con contenido.
+ *
+ * Permite comprobar la consulta del estado de interacción, marcado de películas
+ * como vistas, marcado de videojuegos como jugados, gestión de wishlist,
+ * conteo de visualizaciones y rechazo de peticiones sin autenticación.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

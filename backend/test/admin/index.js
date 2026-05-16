@@ -1,3 +1,12 @@
+/**
+ * test/admin/index.js
+ *
+ * Suite interactiva de pruebas para los endpoints de administración.
+ *
+ * Permite comprobar el acceso con usuario administrador, el rechazo de
+ * peticiones sin token, el rechazo de usuarios sin rol admin y la obtención
+ * o recálculo de estadísticas globales de la plataforma.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

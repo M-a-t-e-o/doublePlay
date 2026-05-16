@@ -1,3 +1,12 @@
+/**
+ * module/review/review.utils.js
+ *
+ * Funciones auxiliares reutilizables para la gestión de reseñas.
+ *
+ * Incluye la serialización de documentos Review para respuestas JSON
+ * y el recálculo de la valoración media y número de reseñas de películas
+ * o videojuegos tras crear, modificar o eliminar una reseña.
+ */
 const mongoose = require('mongoose');
 const Review = require('./review.model');
 

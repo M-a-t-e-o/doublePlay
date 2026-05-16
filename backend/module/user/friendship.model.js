@@ -1,3 +1,15 @@
+/**
+ * module/user/friendship.model.js
+ *
+ * Modelo Mongoose para representar relaciones de amistad entre usuarios.
+ *
+ * Cada documento almacena el usuario emisor, el usuario receptor y el estado
+ * de la solicitud de amistad. El modelo permite gestionar solicitudes pendientes
+ * y amistades aceptadas.
+ *
+ * Incluye índices para evitar duplicados exactos y acelerar las consultas
+ * de solicitudes recibidas.
+ */
 const mongoose = require('mongoose');
 
 const friendshipSchema = new mongoose.Schema({

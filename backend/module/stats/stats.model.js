@@ -1,3 +1,15 @@
+/**
+ * module/stats/stats.model.js
+ *
+ * Modelo Mongoose para almacenar estadísticas globales de la plataforma.
+ *
+ * Utiliza una colección de documento único para guardar datos agregados
+ * sobre usuarios, contenido, valoraciones, visualizaciones, géneros y contenido
+ * destacado.
+ *
+ * Este modelo actúa como caché persistente para evitar recalcular estadísticas
+ * globales en cada petición administrativa.
+ */
 const mongoose = require('mongoose');
 
 // Single-document collection — always one record with key 'platform'

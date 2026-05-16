@@ -1,3 +1,14 @@
+/**
+ * jobs/refreshJobs.js
+ *
+ * Define las tareas programadas del backend mediante node-cron.
+ *
+ * Incluye un job diario para refrescar películas obsoletas desde TMDb
+ * y otro job diario para recalcular las estadísticas globales de la plataforma.
+ *
+ * Estas tareas se registran al iniciar el servidor una vez establecida
+ * la conexión con MongoDB.
+ */
 const cron  = require('node-cron');
 const Movie = require('../module/movies/movie.model');
 const { fetchFromTMDb, transform } = require('../module/movies/tmdbService');
@@ -16,7 +27,7 @@ async function refreshStaleMovies() {
     { tmdbId: 1 }
   ).sort({ updatedAt: 1 });
 
-  console.log(`[CRON] Películas a refrescar: ${stale.length}`);
+  logger.info(`[CRON] Películas a refrescar: ${stale.length}`);
 
   let refreshed = 0, errors = 0;
 
@@ -32,22 +43,22 @@ async function refreshStaleMovies() {
       refreshed++;
     } catch (err) {
       errors++;
-      console.warn(`[CRON] Error refrescando ${movie.tmdbId}: ${err.message}`);
+      logger.warn(`[CRON] Error refrescando ${movie.tmdbId}: ${err.message}`);
     }
     await sleep(260);
   }
 
-  console.log(`[CRON] Refresco completado: ${refreshed} ok, ${errors} errores`);
+  logger.info(`[CRON] Refresco completado: ${refreshed} ok, ${errors} errores`);
 }
 
 // ── Job 2: Recálculo de stats de la plataforma ───────────────────────────────
 async function refreshPlatformStats() {
-  console.log('[CRON] Iniciando recálculo de stats...');
+  logger.info('[CRON] Iniciando recálculo de stats...');
   try {
     await computeStats();
-    console.log('[CRON] Stats actualizados correctamente');
+    logger.info('[CRON] Stats actualizados correctamente');
   } catch (err) {
-    console.error('[CRON] Error recalculando stats:', err.message);
+    logger.error('[CRON] Error recalculando stats:', err.message);
   }
 }
 
@@ -55,21 +66,21 @@ async function refreshPlatformStats() {
 function initRefreshJobs() {
   // Job 1: refresco de películas — cada día a las 3:00 AM
   cron.schedule('0 3 * * *', () => {
-    console.log('[CRON] Iniciando refresco de películas...');
+    logger.info('[CRON] Iniciando refresco de películas...');
     refreshStaleMovies().catch(err =>
-      console.error('[CRON] Error inesperado:', err)
+      logger.error('[CRON] Error inesperado:', err)
     );
   });
 
   // Job 2: recálculo de stats — cada día a las 4:00 AM
   cron.schedule('0 4 * * *', () => {
     refreshPlatformStats().catch(err =>
-      console.error('[CRON] Error inesperado en stats:', err)
+      logger.error('[CRON] Error inesperado en stats:', err)
     );
   });
 
-  console.log('✓ Cron job de refresco de películas registrado (cada día a las 3:00 AM)');
-  console.log('✓ Cron job de stats de plataforma registrado  (cada día a las 4:00 AM)');
+  logger.info('✓ Cron job de refresco de películas registrado (cada día a las 3:00 AM)');
+  logger.info('✓ Cron job de stats de plataforma registrado  (cada día a las 4:00 AM)');
 }
 
 module.exports = { initRefreshJobs };

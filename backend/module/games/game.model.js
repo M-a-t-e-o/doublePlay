@@ -1,3 +1,16 @@
+/**
+ * module/games/game.model.js
+ *
+ * Modelo Mongoose para representar videojuegos dentro del catálogo de doublePlay.
+ *
+ * Almacena datos importados desde el dataset de Steam, como identificador,
+ * título, descripción, géneros, tags, fecha de lanzamiento, imagen, precio,
+ * plataformas y desarrolladores, junto con datos propios de la aplicación
+ * como valoración media y número de reseñas.
+ *
+ * Incluye índices para optimizar filtros, búsquedas, ordenaciones y el uso
+ * del catálogo en el sistema de recomendación.
+ */
 const mongoose = require('mongoose');
 
 const gameSchema = new mongoose.Schema({

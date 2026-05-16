@@ -1,4 +1,16 @@
+/**
+ * utils/emailService.js
+ *
+ * Servicio auxiliar para el envío de correos electrónicos desde el backend.
+ *
+ * Actualmente se utiliza para enviar correos de recuperación de contraseña,
+ * generando un enlace temporal hacia el frontend con el token de reseteo.
+ *
+ * La configuración SMTP se obtiene mediante variables de entorno para evitar
+ * incluir credenciales sensibles en el código fuente.
+ */
 const nodemailer = require('nodemailer');
+const logger = require('./logger');
 
 // Create transporter for ProtonMail
 const createTransporter = () => {
@@ -160,7 +172,7 @@ async function sendPasswordRecoveryEmail(email, resetToken) {
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
-    console.error('Error sending recovery email:', error);
+    logger.error('Error sending recovery email', { email, error: error.message, stack: error.stack });
     return false;
   }
 }

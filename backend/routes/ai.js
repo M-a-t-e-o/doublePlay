@@ -1,3 +1,14 @@
+/**
+ * routes/ai.js
+ *
+ * Define los endpoints relacionados con el sistema de recomendación mediante IA.
+ *
+ * Carga catálogos de películas y videojuegos desde fuentes CSV externas,
+ * selecciona candidatos relevantes según la consulta del usuario y utiliza
+ * un modelo de lenguaje externo para generar recomendaciones conversacionales.
+ *
+ * Todas las rutas de este módulo requieren autenticación mediante JWT.
+ */
 const router = require('express').Router();
 let mistralClient = null;
 
@@ -12,14 +23,15 @@ async function getMistral() {
 const { authRequired } = require('../middleware/auth');
 const axios = require('axios');
 const csv = require('csv-parser');
+const logger = require('../utils/logger');
 
 
-console.log(process.env.MISTRAL_API_KEY ? 'Mistral API key loaded' : 'Mistral API key missing');
+logger.info(process.env.MISTRAL_API_KEY ? 'Mistral API key loaded' : 'Mistral API key missing');
 const urlMovies = process.env.URL_MOVIES_SUPABASE;
 const urlGames = process.env.URL_GAMES_SUPABASE;
 
-console.log(urlMovies ? `Movies URL loaded: ${urlMovies}` : 'Movies URL missing');
-console.log(urlGames ? `Games URL loaded: ${urlGames}` : 'Games URL missing');
+logger.info(urlMovies ? `Movies URL loaded: ${urlMovies}` : 'Movies URL missing');
+logger.info(urlGames ? `Games URL loaded: ${urlGames}` : 'Games URL missing');
 
 
 
@@ -41,24 +53,24 @@ async function loadData(url, type) {
                 })
                 .on('end', () => resolve(resultados))
                 .on('error', (err) => {
-                    console.error(`CSV parse error for ${type}:`, err);
+                    logger.error(`CSV parse error for ${type}`, { error: err.message, stack: err.stack });
                     reject(err);
                 });
         });
     }
     catch (error) {
-        console.error(`Error loading ${type} data:`, error);
+        logger.error(`Error loading ${type} data`, { error: error.message, stack: error.stack });
         return [];
     }
 }
 
 
 async function inicializarCatalogo() {
-    console.log('Cargando catálogos de películas y juegos...');
+    logger.info('Cargando catálogos de películas y juegos...');
     peliculas = await loadData(urlMovies, 'pelicula');
     juegos = await loadData(urlGames, 'juego');
-    console.log(`Cargados ${peliculas.length} películas y ${juegos.length} juegos.`);
-    console.log('Catálogos inicializados');
+    logger.info(`Cargados ${peliculas.length} películas y ${juegos.length} juegos.`);
+    logger.info('Catálogos inicializados');
 }
 
 // Start loading catalogs asynchronously (don't block module load)
@@ -179,9 +191,9 @@ async function generateContent(user_prompt) {
     if ((peliculas.length === 0 || juegos.length === 0) && (urlMovies || urlGames)) {
         try {
             await inicializarCatalogo();
-            console.log('Catalogs refreshed before generating content');
+            logger.info('Catalogs refreshed before generating content');
         } catch (err) {
-            console.warn('Could not reload catalogs before generating content:', err.message || err);
+            logger.warn('Could not reload catalogs before generating content', { error: err.message || err });
         }
     }
 
@@ -207,6 +219,49 @@ async function generateContent(user_prompt) {
 
 router.use(authRequired);
 
+
+/**
+ * @swagger
+ * /ai/generate:
+ *   post:
+ *     summary: Generar una recomendación mediante IA
+ *     description: Recibe una petición del usuario y devuelve una recomendación conversacional de película o videojuego a partir de los catálogos disponibles.
+ *     tags: [AI]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - user_prompt
+ *             properties:
+ *               user_prompt:
+ *                 type: string
+ *                 example: Recomiéndame un juego parecido a Blade Runner
+ *     responses:
+ *       200:
+ *         description: Recomendación generada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 response:
+ *                   type: string
+ *                   example: Podrías probar Cyberpunk 2077 si buscas una experiencia futurista con estética oscura y narrativa intensa.
+ *       400:
+ *         description: Falta el campo user_prompt
+ *       401:
+ *         description: Token ausente o inválido
+ *       429:
+ *         description: Límite de peticiones alcanzado en el proveedor de IA
+ *       500:
+ *         description: Error al generar la recomendación
+ */
+
 router.post('/generate', async (req, res) => {
     const { user_prompt } = req.body;
     if (!user_prompt) {
@@ -217,7 +272,7 @@ router.post('/generate', async (req, res) => {
         const aiResponse = await generateContent(user_prompt);
         res.json({ response: aiResponse });
     } catch (error) {
-        console.error('Error generating content:', error);
+        logger.error('Error generating content', { error: error.message, statusCode: error.statusCode, stack: error.stack });
         if (error?.statusCode === 429 || error?.body?.includes('rate_limited')) {
             return res.status(429).json({
                 error: 'Rate limit exceeded while calling Mistral',
@@ -227,6 +282,44 @@ router.post('/generate', async (req, res) => {
         res.status(500).json({ error: 'Failed to generate content' });
     }
 });
+
+
+/**
+ * @swagger
+ * /ai/status:
+ *   get:
+ *     summary: Consultar estado de los catálogos cargados para IA
+ *     description: Devuelve el número de películas y videojuegos cargados en memoria y una pequeña muestra de ambos catálogos.
+ *     tags: [AI]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Estado de catálogos devuelto correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 moviesCount:
+ *                   type: integer
+ *                   example: 500
+ *                 gamesCount:
+ *                   type: integer
+ *                   example: 1000
+ *                 sampleMovies:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 sampleGames:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 router.get('/status', (req, res) => {
     res.json({

@@ -1,7 +1,7 @@
 {
   "name": "doubleplay",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend REST API for the DoublePlay platform, built with Node.js, Express and MongoDB.",
   "main": "index.js",
   "scripts": {
     "test": "node test/runner.js",
@@ -12,8 +12,17 @@
     "type": "git",
     "url": "git+https://github.com/M-a-t-e-o/doublePlay.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "nodejs",
+    "express",
+    "mongodb",
+    "mongoose",
+    "rest-api",
+    "swagger",
+    "jwt",
+    "doubleplay"
+  ],
+  "author": "Nicolás Pueyo, Sergio garcés, Mateo Peña y Raquel Cámara",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
@@ -33,11 +42,12 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.7",
     "node-cron": "^4.2.1",
+    "nodemailer": "^6.9.7",
     "stream": "^0.0.3",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

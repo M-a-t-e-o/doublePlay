@@ -1,3 +1,15 @@
+/**
+ * scripts/steamETL.js
+ *
+ * Script ETL para importar videojuegos desde el dataset de Steam.
+ *
+ * Lee el fichero games.json en streaming, filtra registros incompletos
+ * o no adecuados para la aplicación, transforma los datos al schema interno
+ * de Game y realiza inserciones o actualizaciones por lotes en MongoDB.
+ *
+ * Está pensado para cargar el catálogo inicial de videojuegos de forma
+ * eficiente sin cargar todo el dataset en memoria.
+ */
 require('dotenv').config({ path: './.env' });
 const fs       = require('fs');
 const path     = require('path');

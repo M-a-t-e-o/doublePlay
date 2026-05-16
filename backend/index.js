@@ -1,3 +1,14 @@
+/**
+ * index.js
+ *
+ * Punto de entrada principal del backend de doublePlay.
+ * Inicializa la aplicación Express, configura los middlewares globales,
+ * establece la conexión con MongoDB, registra las rutas de la API,
+ * habilita la documentación Swagger y arranca el servidor HTTP.
+ *
+ * También inicializa las tareas programadas de refresco de datos y
+ * estadísticas una vez establecida la conexión con la base de datos.
+ */
 require('dotenv').config();
 
 const express  = require('express');
@@ -5,6 +16,7 @@ const mongoose = require('mongoose');
 const cors     = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+const logger = require('./utils/logger');
 
 const { initRefreshJobs } = require('./jobs/refreshJobs');
 
@@ -40,7 +52,7 @@ app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('MongoDB connected');
+    logger.info('MongoDB connected');
     initRefreshJobs();
   })
   .catch(err => console.error('MongoDB error:', err));
@@ -72,4 +84,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get('/api-docs.json', (req, res) => res.json(swaggerSpec));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
+});

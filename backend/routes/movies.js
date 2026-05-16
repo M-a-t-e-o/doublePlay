@@ -1,3 +1,14 @@
+/**
+ * routes/movies.js
+ *
+ * Define los endpoints REST asociados al catálogo de películas.
+ *
+ * Permite consultar películas con paginación, búsqueda, filtrado y ordenación,
+ * obtener detalles de una película concreta, listar géneros, consultar el número
+ * de visualizaciones, gestionar reseñas y respuestas, y modificar la interacción
+ * del usuario autenticado con una película, como marcarla como vista o añadirla
+ * a la wishlist.
+ */
 const router = require('express').Router();
 const Movie  = require('../module/movies/movie.model');
 const Interaction = require('../module/interaction/interaction.model');
@@ -24,6 +35,68 @@ const SORT_OPTIONS = {
 //   search  → buscar por título (ej: ?search=matrix)
 //   genre   → filtrar por género (ej: ?genre=Acción)
 //   sort    → ordenación (ej: ?sort=rating_desc)
+
+/**
+ * @swagger
+ * /movies:
+ *   get:
+ *     summary: Listar películas
+ *     description: Devuelve un catálogo paginado con búsqueda por título, filtro por género y ordenación.
+ *     tags: [Movies]
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *       - name: search
+ *         in: query
+ *         required: false
+ *         description: Texto para buscar en el título.
+ *         schema:
+ *           type: string
+ *           example: matrix
+ *       - name: genre
+ *         in: query
+ *         required: false
+ *         description: Género por el que filtrar.
+ *         schema:
+ *           type: string
+ *           example: Acción
+ *       - name: sort
+ *         in: query
+ *         required: false
+ *         description: Criterio de ordenación.
+ *         schema:
+ *           type: string
+ *           enum: [rating_desc, rating_asc, date_desc, date_asc, title_asc, reviews_desc]
+ *           example: rating_desc
+ *     responses:
+ *       200:
+ *         description: Catálogo paginado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Movie'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/', async (req, res) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1);
@@ -70,6 +143,28 @@ router.get('/', async (req, res) => {
 // ── GET /api/movies/genres/list ───────────────────────────────
 // Devuelve todos los géneros distintos disponibles en la BD
 // El frontend lo usa para pintar los botones de filtro del catálogo
+
+/**
+ * @swagger
+ * /movies/genres/list:
+ *   get:
+ *     summary: Listar géneros de películas
+ *     description: Devuelve la lista de géneros distintos disponibles en el catálogo.
+ *     tags: [Movies]
+ *     responses:
+ *       200:
+ *         description: Lista de géneros
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               example: [Acción]
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/genres/list', async (req, res) => {
   try {
     const genres = await Movie.distinct('genres');
@@ -81,6 +176,37 @@ router.get('/genres/list', async (req, res) => {
 
 // ── GET /api/movies/:id ───────────────────────────────────────
 // Devuelve el detalle completo de una película por su _id de MongoDB
+
+/**
+ * @swagger
+ * /movies/{id}:
+ *   get:
+ *     summary: Obtener detalle de un película
+ *     description: Devuelve el documento completo del película indicado por su ID de MongoDB.
+ *     tags: [Movies]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID del película.
+ *         schema:
+ *           type: string
+ *           example: 60d5ecb54f421b2d1c8e4e1a
+ *     responses:
+ *       200:
+ *         description: Detalle del película
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Movie'
+ *       400:
+ *         description: ID inválido
+ *       404:
+ *         description: Movie not found
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/:id', async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
@@ -101,6 +227,47 @@ router.get('/:id', async (req, res) => {
 
 // ── GET /api/movies/:id/views ────────────────────────────────
 // Devuelve solo el número de usuarios que marcaron la película como vista
+
+/**
+ * @swagger
+ * /movies/{id}/views:
+ *   get:
+ *     summary: Obtener número de visualizaciones
+ *     description: Devuelve cuántos usuarios han marcado este contenido como vista.
+ *     tags: [Movies]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID del película.
+ *         schema:
+ *           type: string
+ *           example: 60d5ecb54f421b2d1c8e4e1a
+ *     responses:
+ *       200:
+ *         description: Número de visualizaciones
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 contentType:
+ *                   type: string
+ *                   enum: [movie, game]
+ *                   example: movie
+ *                 contentId:
+ *                   type: string
+ *                 viewsCount:
+ *                   type: integer
+ *                   example: 42
+ *       400:
+ *         description: ID inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/:id/views', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -130,6 +297,45 @@ router.get('/:id/views', async (req, res) => {
 
 // ── GET /api/movies/:id/reviews ──────────────────────────────
 // Lista reseñas raíz con sus respuestas en un único payload
+
+/**
+ * @swagger
+ * /movies/{id}/reviews:
+ *   get:
+ *     summary: Listar reseñas de un película
+ *     description: Devuelve las reseñas raíz del contenido junto con sus respuestas.
+ *     tags: [Movies]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID del película.
+ *         schema:
+ *           type: string
+ *           example: 60d5ecb54f421b2d1c8e4e1a
+ *     responses:
+ *       200:
+ *         description: Lista de reseñas y respuestas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ReviewWithReplies'
+ *                 total:
+ *                   type: integer
+ *                   example: 3
+ *       400:
+ *         description: ID inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/:id/reviews', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -178,6 +384,59 @@ router.get('/:id/reviews', async (req, res) => {
 
 // ── POST /api/movies/:id/reviews ─────────────────────────────
 // Crea la reseña raíz del usuario (1 por usuario y película)
+
+/**
+ * @swagger
+ * /movies/{id}/reviews:
+ *   post:
+ *     summary: Crear una reseña raíz
+ *     description: Crea una reseña raíz para el usuario autenticado. Cada usuario solo puede crear una reseña raíz por contenido.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID del película.
+ *         schema:
+ *           type: string
+ *           example: 60d5ecb54f421b2d1c8e4e1a
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [rating, content]
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 5
+ *               content:
+ *                 type: string
+ *                 example: Muy recomendable.
+ *     responses:
+ *       201:
+ *         description: Reseña creada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       409:
+ *         description: Ya existe una reseña raíz del usuario para este contenido
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.post('/:id/reviews', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -235,6 +494,55 @@ router.post('/:id/reviews', authRequired, async (req, res) => {
 
 // ── POST /api/movies/:id/reviews/:reviewId/replies ───────────
 // Añade una respuesta sin rating a una reseña raíz
+
+/**
+ * @swagger
+ * /movies/{id}/reviews/{reviewId}/replies:
+ *   post:
+ *     summary: Responder a una reseña
+ *     description: Añade una respuesta sin valoración a una reseña raíz.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: reviewId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [content]
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: Estoy de acuerdo con esta reseña.
+ *     responses:
+ *       201:
+ *         description: Respuesta creada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Contenido o reseña padre no encontrados
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.post('/:id/reviews/:reviewId/replies', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -285,6 +593,61 @@ router.post('/:id/reviews/:reviewId/replies', authRequired, async (req, res) => 
 
 // ── PATCH /api/movies/:id/reviews/:reviewId ──────────────────
 // Edita reseña/respuesta propia. En raíz permite ajustar rating y texto.
+
+/**
+ * @swagger
+ * /movies/{id}/reviews/{reviewId}:
+ *   patch:
+ *     summary: Editar una reseña o respuesta propia
+ *     description: Permite modificar el texto de una reseña o respuesta propia. En reseñas raíz también permite actualizar el rating.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: reviewId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 4
+ *               content:
+ *                 type: string
+ *                 example: Texto actualizado de la reseña.
+ *     responses:
+ *       200:
+ *         description: Reseña actualizada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: Token ausente o inválido
+ *       403:
+ *         description: La reseña no pertenece al usuario autenticado
+ *       404:
+ *         description: Contenido o reseña no encontrados
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.patch('/:id/reviews/:reviewId', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -353,6 +716,42 @@ router.patch('/:id/reviews/:reviewId', authRequired, async (req, res) => {
 
 // ── DELETE /api/movies/:id/reviews/:reviewId ─────────────────
 // Borra reseña/respuesta propia. Si es raíz, borra también respuestas.
+
+/**
+ * @swagger
+ * /movies/{id}/reviews/{reviewId}:
+ *   delete:
+ *     summary: Eliminar una reseña o respuesta propia
+ *     description: Elimina una reseña o respuesta del usuario autenticado. Si se elimina una reseña raíz, también se eliminan sus respuestas.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - name: reviewId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Reseña eliminada correctamente
+ *       400:
+ *         description: ID inválido
+ *       401:
+ *         description: Token ausente o inválido
+ *       403:
+ *         description: La reseña no pertenece al usuario autenticado
+ *       404:
+ *         description: Contenido o reseña no encontrados
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.delete('/:id/reviews/:reviewId', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -404,6 +803,39 @@ router.delete('/:id/reviews/:reviewId', authRequired, async (req, res) => {
 
 // ── GET /api/movies/:id/interaction ──────────────────────────
 // Estado de interacción del usuario autenticado con esta película
+
+/**
+ * @swagger
+ * /movies/{id}/interaction:
+ *   get:
+ *     summary: Consultar interacción del usuario con el contenido
+ *     description: Devuelve si el usuario autenticado ha marcado el contenido como visto/jugado, si está en wishlist y su reseña propia si existe.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Estado de interacción
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InteractionState'
+ *       400:
+ *         description: ID inválido
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/:id/interaction', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -440,6 +872,50 @@ router.get('/:id/interaction', authRequired, async (req, res) => {
 });
 
 // ── PATCH /api/movies/:id/watched ────────────────────────────
+
+/**
+ * @swagger
+ * /movies/{id}/watched:
+ *   patch:
+ *     summary: Marcar contenido como vista o no vista
+ *     description: Actualiza el estado watched del usuario autenticado para el contenido. Si se marca como true, se elimina de la wishlist.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [watched]
+ *             properties:
+ *               watched:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Estado actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InteractionState'
+ *       400:
+ *         description: ID inválido o watched no booleano
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.patch('/:id/watched', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -495,6 +971,50 @@ router.patch('/:id/watched', authRequired, async (req, res) => {
 });
 
 // ── PATCH /api/movies/:id/wishlist ───────────────────────────
+
+/**
+ * @swagger
+ * /movies/{id}/wishlist:
+ *   patch:
+ *     summary: Añadir o quitar contenido de la wishlist
+ *     description: Actualiza el estado de wishlist del usuario autenticado. Si se añade a wishlist, se desmarca como visto/jugado.
+ *     tags: [Movies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [inWishlist]
+ *             properties:
+ *               inWishlist:
+ *                 type: boolean
+ *                 example: true
+ *     responses:
+ *       200:
+ *         description: Estado actualizado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InteractionState'
+ *       400:
+ *         description: ID inválido o inWishlist no booleano
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Contenido no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.patch('/:id/wishlist', authRequired, async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

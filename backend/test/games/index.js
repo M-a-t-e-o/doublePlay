@@ -1,3 +1,12 @@
+/**
+ * test/games/index.js
+ *
+ * Suite interactiva de pruebas para el catálogo de videojuegos.
+ *
+ * Permite comprobar la consulta paginada del catálogo, búsqueda por título,
+ * filtrado por género, ordenación, listado de géneros, consulta de detalle
+ * y manejo de identificadores inválidos.
+ */
 const http  = require('http');
 const https = require('https');
 const readline = require('readline');

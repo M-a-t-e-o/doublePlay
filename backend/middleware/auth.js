@@ -1,3 +1,13 @@
+/**
+ * middleware/auth.js
+ *
+ * Middlewares de autenticación y autorización del backend.
+ * Verifica tokens JWT recibidos mediante la cabecera Authorization
+ * y añade a la petición la información del usuario autenticado.
+ *
+ * También proporciona un middleware adicional para restringir rutas
+ * únicamente a usuarios con rol de administrador.
+ */
 const jwt = require('jsonwebtoken');
 
 function authRequired(req, res, next) {

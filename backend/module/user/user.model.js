@@ -1,3 +1,15 @@
+/**
+ * module/user/user.model.js
+ *
+ * Modelo Mongoose para representar a los usuarios de doublePlay.
+ *
+ * Define la información básica de cuenta, credenciales, rol de usuario,
+ * estado de bloqueo, imagen de perfil y campos necesarios para el proceso
+ * de recuperación de contraseña.
+ *
+ * Incluye validaciones sobre el nombre de usuario, unicidad de email y username,
+ * y soporte para distinguir entre usuarios normales y administradores.
+ */
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({

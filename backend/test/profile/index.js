@@ -1,3 +1,12 @@
+/**
+ * test/profile/index.js
+ *
+ * Suite interactiva de pruebas para los endpoints de perfil de usuario.
+ *
+ * Permite comprobar la obtención del resumen del perfil, estadísticas personales,
+ * películas vistas, videojuegos jugados, contenido añadido a la wishlist y
+ * rechazo de peticiones sin token.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

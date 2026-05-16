@@ -1,11 +1,24 @@
+/**
+ * routes/auth.js
+ *
+ * Define los endpoints relacionados con la autenticación y gestión básica
+ * de la cuenta de usuario.
+ *
+ * Incluye registro, inicio de sesión, cambio de contraseña, modificación
+ * de nombre y nombre de usuario, gestión de imagen de perfil y recuperación
+ * de contraseña mediante correo electrónico.
+ *
+ * Este fichero también contiene anotaciones Swagger para documentar
+ * los endpoints principales de autenticación.
+ */
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const crypto = require('crypto');
 const User = require('../module/user/user.model');
-const swaggerJsdoc = require('swagger-jsdoc');
 const { sendPasswordRecoveryEmail } = require('../utils/emailService');
+const logger = require('../utils/logger');
 
 // Configure multer for profile pictures
 const upload = multer({
@@ -81,10 +94,10 @@ function generateSecureToken() {
 // Register
 /**
  * @swagger
- *   /register:
+ * /auth/register:
  *     post:
  *       summary: Registrar un nuevo usuario
- *       tags: [Users]
+ *       tags: [Auth]
  *       requestBody:
  *         required: true
  *         content:
@@ -180,10 +193,10 @@ router.post('/register', async (req, res) => {
 // Login
 /**
  * @swagger
- * /login:
+ * /auth/login:
  *   post:
  *     summary: Iniciar sesión de usuario
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -276,10 +289,10 @@ router.post('/login', async (req, res) => {
 // Change password
 /**
  * @swagger
- * /change-password:
+ * /auth/change-password:
  *   post:
  *     summary: Cambiar la contraseña del usuario autenticado
- *     tags: [Users]
+ *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -363,10 +376,10 @@ router.post('/change-password', async (req, res) => {
 // Change name
 /**
  * @swagger
- * /change-name:
+ * /auth/change-name:
  *   post:
  *     summary: Cambiar el nombre del usuario autenticado
- *     tags: [Users]
+ *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -442,10 +455,10 @@ router.post('/change-name', async (req, res) => {
 // Change username
 /**
  * @swagger
- * /change-username:
+ * /auth/change-username:
  *   post:
  *     summary: Cambiar el nombre de usuario del usuario autenticado
- *     tags: [Users]
+ *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -533,10 +546,10 @@ router.post('/change-username', async (req, res) => {
 // Upload or update profile picture
 /**
  * @swagger
- * /profile-picture:
+ * /auth/profile-picture:
  *   post:
  *     summary: Actualizar la foto de perfil del usuario
- *     tags: [Users]
+ *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -628,10 +641,10 @@ router.post('/profile-picture', upload.single('profilePicture'), async (req, res
 // Get profile picture by user ID
 /**
  * @swagger
- * /profile-picture/{userId}:
+ * /auth/profile-picture/{userId}:
  *   get:
  *     summary: Obtener la foto de perfil de un usuario
- *     tags: [Users]
+ *     tags: [Auth]
  *     parameters:
  *       - name: userId
  *         in: path
@@ -682,10 +695,10 @@ router.get('/profile-picture/:userId', async (req, res) => {
 // Delete profile picture
 /**
  * @swagger
- * /profile-picture:
+ * /auth/profile-picture:
  *   delete:
  *     summary: Eliminar la foto de perfil del usuario autenticado
- *     tags: [Users]
+ *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -754,10 +767,10 @@ router.delete('/profile-picture', async (req, res) => {
 // Forgot password - Request password recovery
 /**
  * @swagger
- * /forgot-password:
+ * /auth/forgot-password:
  *   post:
  *     summary: Solicitar recuperación de contraseña
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -832,7 +845,7 @@ router.post('/forgot-password', async (req, res) => {
       message: 'If an account with that email exists, a recovery link has been sent'
     });
   } catch (err) {
-    console.error('Error in forgot-password:', err);
+    logger.error('Error in forgot-password', { error: err.message, stack: err.stack });
     return res.status(500).json({ message: 'Server error' });
   }
 });
@@ -840,10 +853,10 @@ router.post('/forgot-password', async (req, res) => {
 // Reset password - Verify token and set new password
 /**
  * @swagger
- * /reset-password:
+ * /auth/reset-password:
  *   post:
  *     summary: Restablecer contraseña con token de recuperación
- *     tags: [Users]
+ *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
@@ -924,7 +937,7 @@ router.post('/reset-password', async (req, res) => {
       message: 'Password reset successfully'
     });
   } catch (err) {
-    console.error('Error in reset-password:', err);
+    logger.error('Error in reset-password', { error: err.message, stack: err.stack });
     return res.status(500).json({ message: 'Server error' });
   }
 });

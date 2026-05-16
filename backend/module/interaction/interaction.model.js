@@ -1,3 +1,15 @@
+/**
+ * module/interaction/interaction.model.js
+ *
+ * Modelo Mongoose para representar la interacción de un usuario con un contenido.
+ *
+ * Permite almacenar de forma unificada la relación entre usuarios y películas
+ * o videojuegos, indicando si el contenido ha sido visto/jugado, cuándo ocurrió,
+ * si está en la wishlist y cuándo fue añadido.
+ *
+ * Utiliza contentType y contentId para soportar distintos tipos de contenido
+ * mediante un único modelo.
+ */
 const mongoose = require('mongoose');
 
 const interactionSchema = new mongoose.Schema({

@@ -1,3 +1,14 @@
+/**
+ * test/runner.js
+ *
+ * Runner interactivo de pruebas del backend de doublePlay.
+ *
+ * Detecta automáticamente los módulos de prueba disponibles dentro de la
+ * carpeta test, permite ejecutar un módulo concreto o todos los módulos,
+ * y muestra por consola las respuestas obtenidas de la API.
+ *
+ * Está orientado a pruebas funcionales/manuales de los endpoints del backend.
+ */
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');

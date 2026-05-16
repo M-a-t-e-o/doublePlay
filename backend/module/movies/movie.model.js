@@ -1,3 +1,15 @@
+/**
+ * module/movies/movie.model.js
+ *
+ * Modelo Mongoose para representar películas dentro del catálogo de doublePlay.
+ *
+ * Almacena datos obtenidos desde TMDb, como título, descripción, fecha de estreno,
+ * géneros, idioma, duración, póster y tráiler, junto con datos propios de la
+ * aplicación como valoración media, número de reseñas y fecha de actualización.
+ *
+ * Incluye índices para optimizar búsquedas, filtros, ordenaciones y refrescos
+ * periódicos de datos.
+ */
 const mongoose = require('mongoose');
 
 const movieSchema = new mongoose.Schema({

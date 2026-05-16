@@ -1,3 +1,15 @@
+/**
+ * module/review/review.model.js
+ *
+ * Modelo Mongoose para representar reseñas y respuestas sobre películas
+ * y videojuegos.
+ *
+ * Permite crear reseñas raíz con valoración numérica y respuestas asociadas
+ * sin valoración mediante el campo answerTo.
+ *
+ * Incluye validaciones para limitar el contenido, controlar el rango de rating
+ * y asegurar que cada usuario solo pueda publicar una reseña raíz por contenido.
+ */
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema({

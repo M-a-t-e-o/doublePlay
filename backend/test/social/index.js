@@ -1,3 +1,12 @@
+/**
+ * test/social/index.js
+ *
+ * Suite interactiva de pruebas para funcionalidades sociales.
+ *
+ * Permite comprobar el feed social, búsqueda de usuarios, envío y aceptación
+ * de solicitudes de amistad, listado de amigos, consulta de solicitudes
+ * pendientes, cancelación o rechazo de solicitudes y eliminación de amistades.
+ */
 const http = require('http');
 const https = require('https');
 const readline = require('readline');

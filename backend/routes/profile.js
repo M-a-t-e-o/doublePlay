@@ -1,3 +1,15 @@
+/**
+ * routes/profile.js
+ *
+ * Define los endpoints asociados al perfil del usuario autenticado.
+ *
+ * Permite obtener un resumen del perfil, estadísticas personales,
+ * distribución mensual de actividad, distribución de géneros consumidos,
+ * listados paginados de películas vistas, videojuegos jugados y contenido
+ * añadido a la wishlist.
+ *
+ * Todas las rutas de este módulo requieren autenticación mediante JWT.
+ */
 const router = require('express').Router();
 const mongoose = require('mongoose');
 
@@ -294,6 +306,58 @@ async function getGenreDistribution(userId, contentType, contentModel) {
   return buildPercentages(rows);
 }
 
+
+/**
+ * @swagger
+ * /profile/me:
+ *   get:
+ *     summary: Obtener resumen del perfil autenticado
+ *     description: Devuelve datos básicos del usuario, contadores de actividad y distribuciones estadísticas personales.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Resumen de perfil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/PublicUser'
+ *                 counts:
+ *                   type: object
+ *                   properties:
+ *                     watchedMovies:
+ *                       type: integer
+ *                       example: 12
+ *                     gamesPlayed:
+ *                       type: integer
+ *                       example: 8
+ *                     totalWishlisted:
+ *                       type: integer
+ *                       example: 20
+ *                 monthlyDistribution:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 movieGenreDistribution:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 gameGenreDistribution:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         description: Token ausente o inválido
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/me', async (req, res) => {
   try {
     const userId = req.userId;
@@ -341,6 +405,50 @@ router.get('/me', async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /profile/me/movies/watched:
+ *   get:
+ *     summary: Listar películas vistas por el usuario
+ *     description: Devuelve un listado paginado de películas marcadas como vistas por el usuario autenticado.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: Películas vistas paginadas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ContentListItem'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/me/movies/watched', async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -361,6 +469,50 @@ router.get('/me/movies/watched', async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+/**
+ * @swagger
+ * /profile/me/games/played:
+ *   get:
+ *     summary: Listar videojuegos jugados por el usuario
+ *     description: Devuelve un listado paginado de videojuegos marcados como jugados por el usuario autenticado.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: Videojuegos jugados paginados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ContentListItem'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 router.get('/me/games/played', async (req, res) => {
   try {
@@ -383,6 +535,50 @@ router.get('/me/games/played', async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /profile/me/movies/wishlisted:
+ *   get:
+ *     summary: Listar películas en wishlist
+ *     description: Devuelve un listado paginado de películas añadidas a la wishlist por el usuario autenticado.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: Películas en wishlist paginadas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ContentListItem'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
+
 router.get('/me/movies/wishlisted', async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -403,6 +599,50 @@ router.get('/me/movies/wishlisted', async (req, res) => {
     return res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+/**
+ * @swagger
+ * /profile/me/games/wishlisted:
+ *   get:
+ *     summary: Listar videojuegos en wishlist
+ *     description: Devuelve un listado paginado de videojuegos añadidos a la wishlist por el usuario autenticado.
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: Videojuegos en wishlist paginados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ContentListItem'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         description: Token ausente o inválido
+ *       500:
+ *         description: Error interno del servidor
+ */
 
 router.get('/me/games/wishlisted', async (req, res) => {
   try {
