@@ -21,15 +21,15 @@
 - [ ] Se han definido schemas mediante Mongoose para los recursos que se utilizan en la aplicación.
 - [ ] Se han definido subschemas cuando se pueden utilizar, prefiriéndolos sobre schemas independientes.
 - [ ] Se ha documentado el API por completo mediante Swagger.
-- [ ] Todos los endpoint devuelven códigos de respuesta HTTP adecuados según su funcionamiento.
-- [ ] Se ha introducido un mecanismo de seguridad como JWT para securizar los endpoints.
+- [x] Todos los endpoint devuelven códigos de respuesta HTTP adecuados según su funcionamiento.
+- [x] Se ha introducido un mecanismo de seguridad como JWT para securizar los endpoints.
 - [ ] Se ha añadido la autenticación a la documentación del API.
 - [ ] Se ha revisado el API frente a códigos de conducta en el diseño y desarrollo para buenas API.
 
 ### Backend
-- [ ] El fichero packages.json está bien construido y documentado.
+- [x] El fichero packages.json está bien construido y documentado.
 - [ ] Se ha estructurado el código como lo visto en clase para el patrón MVC y después en módulos.
-- [ ] El código no da errores en su ejecución.
+- [x] El código no da errores en su ejecución.
 - [ ] Se realiza logging mediante Winston.
 - [ ] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
 - [ ] Se ha documentado la justificación y utilización de todos los paquetes identificados en el packages.json
@@ -45,10 +45,10 @@
 - [ ] Hay un testing E2E mínimo.
 
 ### Despliegue
-- [ ] La aplicación se ha desplegado en un proveedor PaaS correctamente, o en un IaaS garantizando escalabilidad, seguridad y resiliencia.
+- [x] La aplicación se ha desplegado en un proveedor PaaS correctamente, o en un IaaS garantizando escalabilidad, seguridad y resiliencia.
 - [ ] Se ha documentado la fase de despliegue, sobre todo si hay más de un PaaS implicado (por ejemplo, uno para back y otro para front).
 - [ ] Se ha documentado el startup inicial de la aplicación. Si requiere la carga de datos iniciales, se proporcionan.
-- [ ] No hay problemas de CORS al utilizar la aplicación.
+- [x] No hay problemas de CORS al utilizar la aplicación.
 - [ ] Si hay problemas de limitación de funcionalidades (por ejemplo, espacio en ATLAS para la DB), se han identificado y documentado.
 - [ ] Se han identificado y documentado las live URL para la aplicación y la documentación del API (Swagger).
 - [ ] Se han documentado al menos un usuario administrador y un usuario demo, con su contraseña.
