@@ -13,6 +13,7 @@ const cron  = require('node-cron');
 const Movie = require('../module/movies/movie.model');
 const { fetchFromTMDb, transform } = require('../module/movies/tmdbService');
 const { computeStats } = require('../module/stats/stats.service');
+const logger = require('../utils/logger');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const TTL_MS = 24 * 60 * 60 * 1000;
