@@ -54,6 +54,16 @@ export interface ContentListResponse {
   };
 }
 
+export interface ProfileUpdateResponse {
+  message: string;
+  user?: {
+    id: string;
+    name: string;
+    username: string;
+    hasProfilePicture: boolean;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -92,5 +102,20 @@ export class ProfileService {
 
   uploadProfilePicture(formData: FormData): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.api}/auth/profile-picture`, formData);
+  }
+
+  updateProfileName(name: string): Observable<ProfileUpdateResponse> {
+    return this.http.post<ProfileUpdateResponse>(`${this.api}/auth/change-name`, { name });
+  }
+
+  updateUsername(username: string): Observable<ProfileUpdateResponse> {
+    return this.http.post<ProfileUpdateResponse>(`${this.api}/auth/change-username`, { username });
+  }
+
+  updatePassword(currentPassword: string, newPassword: string): Observable<ProfileUpdateResponse> {
+    return this.http.post<ProfileUpdateResponse>(`${this.api}/auth/change-password`, {
+      currentPassword,
+      newPassword
+    });
   }
 }

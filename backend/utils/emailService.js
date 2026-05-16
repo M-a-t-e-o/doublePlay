@@ -138,7 +138,7 @@ async function sendPasswordRecoveryEmail(email, resetToken) {
               <p>We received a request to reset your password. Click the button below to set a new password:</p>
               
               <center>
-                <a href="${resetLink}" class="reset-button">Reset Password</a>
+                <a href="${resetLink}" class="reset-button" target="_blank" rel="noopener noreferrer">Reset Password</a>
               </center>
 
               <div class="warning">

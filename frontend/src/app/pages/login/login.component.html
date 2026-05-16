@@ -53,7 +53,9 @@
         </button>
       </div>
 
-      <a class="forgot-link" href="#">Forgot password?</a>
+      <button class="forgot-link" type="button" (click)="onForgotPassword()" [disabled]="forgotLoading">
+        {{ forgotLoading ? 'Sending recovery email...' : 'Forgot password?' }}
+      </button>
 
       @if (errorMessage) {
         <p class="form-error">{{ errorMessage }}</p>

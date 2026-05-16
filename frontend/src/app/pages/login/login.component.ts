@@ -17,6 +17,7 @@ export class LoginComponent {
   password = '';
   showPassword = false;
   loading = false;
+  forgotLoading = false;
   errorMessage = '';
   infoMessage = '';
   returnUrl = '/home';
@@ -59,6 +60,33 @@ export class LoginComponent {
       },
       complete: () => {
         this.loading = false;
+      }
+    });
+  }
+
+  onForgotPassword(): void {
+    this.errorMessage = '';
+    this.infoMessage = '';
+
+    if (!this.email.trim()) {
+      this.errorMessage = 'Please enter your email before requesting a recovery link.';
+      return;
+    }
+
+    this.forgotLoading = true;
+
+    this.authService.forgotPassword({ email: this.email }).subscribe({
+      next: () => {
+        this.infoMessage = 'If an account with that email exists, a recovery link has been sent.';
+        this.forgotLoading = false;
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 0) {
+          this.errorMessage = 'Cannot connect to backend';
+        } else {
+          this.errorMessage = error.error?.message || 'Failed to send recovery email. Please try again.';
+        }
+        this.forgotLoading = false;
       }
     });
   }
