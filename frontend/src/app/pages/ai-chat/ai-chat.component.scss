@@ -121,7 +121,9 @@ app-search-dropdown {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0.25rem 0.2rem 4.5rem;
+  /* leave extra space at the bottom so the composer never overlaps messages
+     and so the input isn't cut when the mobile keyboard appears */
+  padding: 0.25rem 0.2rem calc(4.5rem + env(safe-area-inset-bottom, 0));
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -288,6 +290,10 @@ app-search-dropdown {
   display: grid;
   gap: 0.75rem;
   padding: 0 0.35rem 0.2rem;
+  /* keep composer visible above on-screen keyboards on mobile */
+  position: sticky;
+  bottom: env(safe-area-inset-bottom, 0);
+  z-index: 5;
 }
 
 .action-chips {
@@ -409,6 +415,8 @@ app-search-dropdown {
 
   .composer-row {
     gap: 0.5rem;
+    /* ensure input has space and doesn't get clipped */
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .send-button {

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
@@ -89,7 +90,8 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -495,6 +497,10 @@ export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!target) return;
 
     target.src = `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.adminAvatarSeed)}`;
+  }
+
+  navigateToProfile(): void {
+    void this.router.navigate(['/profile']);
   }
 
   getContentRoute(item: AdminStats['topContent'][number]): string[] {

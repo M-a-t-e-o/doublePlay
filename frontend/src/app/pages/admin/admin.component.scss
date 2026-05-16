@@ -531,6 +531,25 @@ tbody tr:last-child td {
   width: 100%;
 }
 
+/* Make the separator a single line per row so it looks uniform across columns */
+.top-performing-table table {
+  border-collapse: collapse;
+}
+
+/* remove cell-level borders and use row borders instead */
+.top-performing-table th,
+.top-performing-table td {
+  border-bottom: none;
+}
+
+.top-performing-table tbody tr {
+  border-bottom: 1px solid rgb(92 101 158 / 14%);
+}
+
+.top-performing-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
 .top-performing-table th,
 .top-performing-table td {
   padding: 1rem 0.8rem;
@@ -572,16 +591,68 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* Use inline elements and vertical-align to center star + number with the row */
 .top-performing-table .rating-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
+  text-align: center;
+  font-weight: 600;
   color: #ffc400;
+  white-space: nowrap;
+}
+
+.top-performing-table .rating-cell .material-symbols-outlined,
+.top-performing-table .rating-cell .rating-value {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
 }
 
 .top-performing-table .rating-cell .material-symbols-outlined {
+  margin-right: 0.35rem;
   font-size: 1rem;
+  transform: translateY(3px);
+}
+
+.top-performing-table .rating-cell .rating-value {
+  transform: translateY(3px);
+}
+
+/* Center the Rating header and ensure rating cells (icon + value)
+   are perfectly centered and aligned with the table dividers */
+.top-performing-table thead th:nth-child(4),
+.top-performing-table tbody td.rating-cell {
+  text-align: center;
+}
+
+.top-performing-table tbody td.rating-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.top-performing-table tbody td.rating-cell .material-symbols-outlined {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+/* Ensure table cells align vertically and rating sizing is consistent */
+.top-performing-table th,
+.top-performing-table td {
+  vertical-align: middle;
+}
+
+.top-performing-table .rating-cell {
+  white-space: nowrap;
+}
+
+.top-performing-table .rating-value {
+  color: #ffc400;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
 }
 @media (max-width: 1180px) {
   .metric-grid {
@@ -655,5 +726,11 @@ tbody tr:last-child td {
   .rating-chip {
     grid-column: 2;
     justify-self: start;
+  }
+
+  /* slightly reduce star size on very small screens for better alignment */
+  .top-performing-table .rating-cell .material-symbols-outlined {
+    font-size: 0.95rem;
+    transform: translateY(1px);
   }
 }

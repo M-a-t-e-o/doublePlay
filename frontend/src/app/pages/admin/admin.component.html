@@ -8,7 +8,7 @@
         [label]="'Search'">
       </app-search-dropdown>
 
-      <button class="profile-button" type="button" aria-label="Admin profile">
+      <button class="profile-button" type="button" aria-label="Admin profile" (click)="navigateToProfile()">
         <img
           class="profile-button-image"
           [src]="adminAvatarUrl"
@@ -185,7 +185,7 @@
                     <td class="views-cell">{{ (item.views || item.ratingCount || 0) | number }}{{ item.views ? 'k' : '' }}</td>
                     <td class="rating-cell">
                       <span class="material-symbols-outlined" aria-hidden="true">star</span>
-                      {{ item.avgRating.toFixed(1) }}
+                      <span class="rating-value">{{ item.avgRating.toFixed(1) }}</span>
                     </td>
                   </tr>
                 }

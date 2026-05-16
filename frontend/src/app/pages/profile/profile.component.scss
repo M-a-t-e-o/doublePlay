@@ -805,6 +805,19 @@
     flex-direction: column;
   }
 
+  /* Keep the three quick stats in one row on mobile */
+  .quick-stats {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .quick-stats .stat {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 0.6rem;
+  }
+
   .library-panel header {
     flex-direction: column;
     align-items: flex-start;
