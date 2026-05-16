@@ -3,7 +3,7 @@
 
   <main class="profile-content">
     @if (showToast) {
-      <div class="toast" [class.toast-error]="toastType === 'error'">
+      <div class="toast" [class.toast-error]="toastType === 'error'" [class.toast-success]="toastType === 'success'">
         <span>{{ toastMessage }}</span>
       </div>
     }
@@ -58,12 +58,70 @@
             Admin
           </button>
         }
-        <button type="button" class="action-btn settings-btn">
+        <button type="button" class="action-btn settings-btn" (click)="openSettingsModal()">
           <span class="material-symbols-outlined">settings</span>
           Settings
         </button>
       </div>
     </section>
+
+    <div class="settings-modal" *ngIf="showSettingsModal" (click)="closeSettingsModal()">
+      <section class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" (click)="$event.stopPropagation()">
+        <button type="button" class="close-btn" (click)="closeSettingsModal()" aria-label="Close settings dialog">✕</button>
+        <h3 id="settings-title">Profile settings</h3>
+        <form class="settings-form" (ngSubmit)="saveSettings()">
+          <label>
+            <span>Name</span>
+            <input
+              type="text"
+              name="settingsName"
+              [(ngModel)]="settingsForm.name"
+              autocomplete="name"
+              placeholder="Your name" />
+          </label>
+
+          <label>
+            <span>Username</span>
+            <input
+              type="text"
+              name="settingsUsername"
+              [(ngModel)]="settingsForm.username"
+              autocomplete="username"
+              placeholder="your_username" />
+          </label>
+
+          <div class="password-block">
+            <p class="field-group-title">Change password</p>
+            <label>
+              <span>Current password</span>
+              <input
+                type="password"
+                name="settingsCurrentPassword"
+                [(ngModel)]="settingsForm.currentPassword"
+                autocomplete="current-password"
+                placeholder="Current password" />
+            </label>
+
+            <label>
+              <span>New password</span>
+              <input
+                type="password"
+                name="settingsNewPassword"
+                [(ngModel)]="settingsForm.newPassword"
+                autocomplete="new-password"
+                placeholder="New password" />
+            </label>
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="secondary-btn" (click)="closeSettingsModal()">Cancel</button>
+            <button type="submit" class="primary-btn" [disabled]="isSavingSettings">
+              {{ isSavingSettings ? 'Saving...' : 'Save changes' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
 
     <!-- Upload modal for drag-and-drop -->
     <div class="upload-modal" *ngIf="showUploadModal">

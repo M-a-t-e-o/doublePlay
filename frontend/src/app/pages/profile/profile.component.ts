@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService, ProfileData, ContentListResponse } from '../../core/services/profile.service';
 import { SidebarComponent } from '../../core/components/sidebar/sidebar.component';
@@ -34,7 +36,7 @@ type LibraryItem = {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, SearchDropdownComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, SearchDropdownComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
@@ -47,6 +49,8 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   private avatarCacheBust = Date.now();
   isUploadingProfilePicture: boolean = false;
   showUploadModal: boolean = false;
+  showSettingsModal: boolean = false;
+  isSavingSettings: boolean = false;
   isDragOver: boolean = false;
   private activityChartInstance: Chart<'bar'> | null = null;
   private genreChartInstance: Chart<'doughnut'> | null = null;
@@ -64,6 +68,12 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
   profileUsername: string = '';
   profileRole: 'user' | 'admin' | undefined = undefined;
   memberSinceLabel: string = 'Member since';
+  settingsForm = {
+    name: '',
+    username: '',
+    currentPassword: '',
+    newPassword: ''
+  };
   
   activeLibraryTab: 'history' | 'wishlist' = 'history';
   activeLibraryType: 'all' | 'movies' | 'games' = 'all';
@@ -102,6 +112,23 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/admin']);
   }
 
+  openSettingsModal(): void {
+    this.settingsForm = {
+      name: this.profileName,
+      username: this.profileUsername,
+      currentPassword: '',
+      newPassword: ''
+    };
+    this.showSettingsModal = true;
+  }
+
+  closeSettingsModal(): void {
+    this.showSettingsModal = false;
+    this.isSavingSettings = false;
+    this.settingsForm.currentPassword = '';
+    this.settingsForm.newPassword = '';
+  }
+
   ngOnInit(): void {
     this.profileName = this.getSessionNameFallback();
     this.loadProfileData();
@@ -135,6 +162,10 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
         this.profileUsername = backendUsername;
         this.profileRole = this.authService.getUserRoleFromToken() || undefined;
         this.memberSinceLabel = this.formatMemberSince(data.user.createdAt);
+        if (this.showSettingsModal) {
+          this.settingsForm.name = this.profileName;
+          this.settingsForm.username = this.profileUsername;
+        }
         
         // Process monthly activity
         this.monthlyActivity = data.monthlyDistribution.map(item => ({
@@ -528,6 +559,62 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showUploadModal = true;
   }
 
+  async saveSettings(): Promise<void> {
+    const nextName = this.settingsForm.name.trim();
+    const nextUsername = this.settingsForm.username.trim();
+    const currentPassword = this.settingsForm.currentPassword;
+    const newPassword = this.settingsForm.newPassword;
+
+    const hasNameChange = nextName !== '' && nextName !== this.profileName.trim();
+    const hasUsernameChange = nextUsername !== '' && nextUsername !== this.profileUsername.trim();
+    const hasPasswordChange = currentPassword.length > 0 || newPassword.length > 0;
+
+    if (!hasNameChange && !hasUsernameChange && !hasPasswordChange) {
+      this.showErrorToast('No changes to save.');
+      return;
+    }
+
+    if (hasPasswordChange && (!currentPassword || !newPassword)) {
+      this.showErrorToast('Provide both current password and new password.');
+      return;
+    }
+
+    this.isSavingSettings = true;
+
+    try {
+      if (hasNameChange) {
+        const response = await firstValueFrom(this.profileService.updateProfileName(nextName));
+        this.profileName = response.user?.name || nextName;
+        if (this.profileData) {
+          this.profileData.user.name = this.profileName;
+        }
+        this.authService.saveUserName(this.profileName);
+      }
+
+      if (hasUsernameChange) {
+        const response = await firstValueFrom(this.profileService.updateUsername(nextUsername));
+        this.profileUsername = response.user?.username || nextUsername;
+        if (this.profileData) {
+          this.profileData.user.username = this.profileUsername;
+        }
+      }
+
+      if (hasPasswordChange) {
+        await firstValueFrom(this.profileService.updatePassword(currentPassword, newPassword));
+        this.settingsForm.currentPassword = '';
+        this.settingsForm.newPassword = '';
+      }
+
+      this.closeSettingsModal();
+      this.showSuccessToast('Profile settings updated successfully.');
+    } catch (err) {
+      console.error('Error updating profile settings:', err);
+      this.showErrorToast(this.extractErrorMessage(err, 'Could not update profile settings.'));
+    } finally {
+      this.isSavingSettings = false;
+    }
+  }
+
   onProfilePictureSelected(event: Event): void {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
@@ -609,5 +696,32 @@ export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.showToast = false;
     }, 4000);
+  }
+
+  private showSuccessToast(message: string): void {
+    this.toastMessage = message;
+    this.toastType = 'success';
+    this.showToast = true;
+    setTimeout(() => {
+      this.showToast = false;
+    }, 3500);
+  }
+
+  private extractErrorMessage(err: unknown, fallback: string): string {
+    if (err && typeof err === 'object' && 'error' in err) {
+      const error = (err as { error?: { message?: string } }).error;
+      if (error?.message) {
+        return error.message;
+      }
+    }
+
+    if (err && typeof err === 'object' && 'message' in err) {
+      const message = (err as { message?: string }).message;
+      if (message) {
+        return message;
+      }
+    }
+
+    return fallback;
   }
 }

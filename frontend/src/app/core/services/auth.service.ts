@@ -26,6 +26,14 @@ export class AuthService {
     return this.http.post<{ token: string, name: string, role?: 'user' | 'admin' }>(`${this.api}/auth/login`, data)
   }
 
+  forgotPassword(data: { email: string }) {
+    return this.http.post<{ message: string }>(`${this.api}/auth/forgot-password`, data)
+  }
+
+  resetPassword(data: { token: string, newPassword: string }) {
+    return this.http.post<{ message: string }>(`${this.api}/auth/reset-password`, data)
+  }
+
   saveToken(token: string) {
     localStorage.setItem(this.tokenKey, token)
   }
