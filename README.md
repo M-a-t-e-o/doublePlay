@@ -19,7 +19,7 @@
 - [x] Se han añadido los métodos adicionales necesarios para el correcto funcionamiento de la aplicación.
 - [x] Los métodos están lo más desacoplados posibles entre sí, y con respecto a la capa de acceso a datos.
 - [x] Se han definido schemas mediante Mongoose para los recursos que se utilizan en la aplicación.
-- [~] Se han definido subschemas cuando se pueden utilizar, prefiriéndolos sobre schemas independientes.
+- [x] Se han definido subschemas cuando se pueden utilizar, prefiriéndolos sobre schemas independientes.
 - [x] Se ha documentado el API por completo mediante Swagger.
 - [x] Todos los endpoint devuelven códigos de respuesta HTTP adecuados según su funcionamiento.
 - [x] Se ha introducido un mecanismo de seguridad como JWT para securizar los endpoints.
@@ -31,7 +31,7 @@
 - [x] Se ha estructurado el código como lo visto en clase para el patrón MVC y después en módulos.
 - [x] El código no da errores en su ejecución.
 - [x] Se realiza logging mediante Winston.
-- [~] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
+- [x] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
 - [ ] Se ha documentado la justificación y utilización de todos los paquetes identificados en el packages.json
 - [x] Se han identificado y documentado las limitaciones de la aplicación.
 - [x] Se han identificado y documentado los puntos de mejora de la aplicación.
