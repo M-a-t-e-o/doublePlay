@@ -1,6 +1,10 @@
-/**
- * Password requirements matching backend validation
- */
+/*
+  Project: doublePlay (frontend)
+  File: cypress/support/auth-helpers.ts
+  Description: Shared Cypress helpers for auth tests, including password rules and test-user factories.
+*/
+
+/** Password requirements matching backend validation. */
 export const PASSWORD_REQUIREMENTS = {
   minLength: 8,
   requireUppercase: true,
@@ -8,20 +12,13 @@ export const PASSWORD_REQUIREMENTS = {
   requireSymbol: true
 }
 
-/**
- * Generate a password that meets all requirements
- * @returns A valid password string
- */
+/** Generates a password that satisfies the backend rules. */
 export function generateValidPassword(): string {
   // Pattern: at least 8 chars, 1 uppercase, 1 number, 1 symbol + more chars
   return 'Password123!'
 }
 
-/**
- * Validate password against requirements
- * @param password The password to validate
- * @returns true if valid, false otherwise
- */
+/** Validates a password against the shared requirements. */
 export function isValidPassword(password: string): boolean {
   if (password.length < PASSWORD_REQUIREMENTS.minLength) {
     return false
@@ -38,11 +35,7 @@ export function isValidPassword(password: string): boolean {
   return true
 }
 
-/**
- * Create a test user object with valid credentials
- * @param override Optional overrides for user properties
- * @returns Test user object
- */
+/** Builds a Cypress test user with valid credentials and optional overrides. */
 export function createTestUser(override?: Partial<any>) {
   const timestamp = Date.now()
   return {

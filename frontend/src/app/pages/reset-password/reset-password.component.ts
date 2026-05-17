@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/reset-password/reset-password.component.ts
+  Description: Password reset form that validates the token, compares the new passwords and submits the update.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
@@ -34,6 +40,7 @@ export class ResetPasswordComponent {
     }
   }
 
+  /** Validates the reset form and sends the new password to the backend. */
   onSubmitResetPassword(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -73,14 +80,17 @@ export class ResetPasswordComponent {
     });
   }
 
+  /** Toggles visibility for the new password field. */
   toggleNewPasswordVisibility(): void {
     this.showNewPassword = !this.showNewPassword;
   }
 
+  /** Toggles visibility for the confirmation password field. */
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
+  /** Returns the user to the login page after a successful reset. */
   goToLogin(): void {
     void this.router.navigate(['/login']);
   }

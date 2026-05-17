@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/core/components/sidebar/sidebar.component.ts
+  Description: Sidebar navigation component that shows the main app links and user avatar.
+*/
+
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';

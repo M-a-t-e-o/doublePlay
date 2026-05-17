@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress/support/e2e.ts
+  Description: Cypress end-to-end bootstrap that loads shared commands before the auth and app specs run.
+*/
+
 // ***********************************************************
 // This example support/e2e.ts is processed and
 // loaded automatically before your test files.
