@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/games/games.component.ts
+  Description: Games listing page that handles browsing, filtering and sorting game results.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
@@ -72,6 +78,7 @@ export class GamesComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
+  /** Loads the first page of games on component initialization. */
   ngOnInit(): void {
     this.loadGenres();
     this.loadGames();
@@ -136,6 +143,7 @@ export class GamesComponent implements OnInit {
     });
   }
 
+  /** Fetches games from the backend for the current page and applies filters/sorting. */
   private loadGames(): void {
     this.isLoading = true;
     this.errorMessage = '';

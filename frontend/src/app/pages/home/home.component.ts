@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/home/home.component.ts
+  Description: Home page component that presents the landing content and discovery entry points.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';

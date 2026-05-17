@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/movies/movies.component.ts
+  Description: Movies listing page that handles browsing, filtering and sorting movie results.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
@@ -72,6 +78,7 @@ export class MoviesComponent implements OnInit {
 
   constructor(private http: HttpClient) {}
 
+  /** Loads the first page of movies on component initialization. */
   ngOnInit(): void {
     this.loadGenres();
     this.loadMovies();
@@ -136,6 +143,7 @@ export class MoviesComponent implements OnInit {
     });
   }
 
+  /** Fetches movies from the backend for the current page and applies filters/sorting. */
   private loadMovies(): void {
     this.isLoading = true;
     this.errorMessage = '';

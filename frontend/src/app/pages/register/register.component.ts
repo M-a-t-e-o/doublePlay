@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/register/register.component.ts
+  Description: Registration form component that creates new accounts and validates the legal consent.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
@@ -34,6 +40,7 @@ export class RegisterComponent {
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/home';
   }
 
+  /** Validates and submits the registration form to create a new account. */
   onSubmitRegister(): void {
     this.errorMessage = '';
 
@@ -86,10 +93,12 @@ export class RegisterComponent {
     });
   }
 
+  /** Toggles the visibility of the password field. */
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
+  /** Toggles the visibility of the password confirmation field. */
   toggleConfirmPasswordVisibility(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
@@ -99,6 +108,7 @@ export class RegisterComponent {
     this.activeLegalModal = type;
   }
 
+  /** Closes the currently open legal modal. */
   closeLegalModal(): void {
     this.activeLegalModal = null;
   }

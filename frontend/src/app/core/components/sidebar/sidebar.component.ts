@@ -45,6 +45,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   constructor(private authService: AuthService) {}
 
+  /** Initializes the sidebar and subscribes to avatar cache updates. */
   ngOnInit(): void {
     this.authService.getAvatarCacheBust()
       .pipe(takeUntil(this.destroy$))
@@ -53,6 +54,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Cleans up subscriptions when the sidebar is destroyed. */
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

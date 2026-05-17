@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/social/social.component.ts
+  Description: Social feed page component that renders interactions, friends and activity cards.
+*/
+
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -64,10 +70,12 @@ export class SocialComponent implements OnInit {
     private authService: AuthService
   ) {}
 
+  /** Constructs the URL for a user's profile picture from their ID. */
   getProfilePictureUrl(userId: string): string {
     return `${this.api}/auth/profile-picture/${userId}`;
   }
 
+  /** Initializes the social component by loading the feed and friend data. */
   ngOnInit(): void {
     this.loadFeed(1, true);
     this.loadFriendData();

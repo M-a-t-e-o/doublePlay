@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress.config.ts
+  Description: Cypress configuration for e2e and component tests, including base URL and Angular test server setup.
+*/
+
 import { defineConfig } from "cypress";
 
 export default defineConfig({

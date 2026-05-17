@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress/e2e/auth/register_api.cy.ts
+  Description: End-to-end auth test that registers users through the UI and verifies backend validation on duplicates.
+*/
+
 import { createTestUser } from '../../support/auth-helpers'
 
 describe('Register API interactions (real backend)', () => {

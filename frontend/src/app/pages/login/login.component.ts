@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/login/login.component.ts
+  Description: Login form component that validates credentials, requests password recovery and redirects after sign-in.
+*/
+
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
@@ -34,6 +40,7 @@ export class LoginComponent {
     }
   }
 
+  /** Submits the login form, stores the session token and redirects to the return URL. */
   onSubmitLogin(): void {
     this.errorMessage = '';
 
@@ -64,6 +71,7 @@ export class LoginComponent {
     });
   }
 
+  /** Requests a password recovery email after checking that an email address has been entered. */
   onForgotPassword(): void {
     this.errorMessage = '';
     this.infoMessage = '';
@@ -91,6 +99,7 @@ export class LoginComponent {
     });
   }
 
+  /** Toggles the visibility of the password field. */
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }

@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress/e2e/auth/login.cy.ts
+  Description: End-to-end test that checks the login screen, password visibility toggle and link to registration.
+*/
+
 describe('Login page', () => {
   it('shows the login form and navigates to register', () => {
     cy.visit('/login');

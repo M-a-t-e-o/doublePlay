@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress/support/component.ts
+  Description: Cypress component-test bootstrap that registers shared commands and the Angular mount helper.
+*/
+
 // ***********************************************************
 // This example support/component.ts is processed and
 // loaded automatically before your test files.

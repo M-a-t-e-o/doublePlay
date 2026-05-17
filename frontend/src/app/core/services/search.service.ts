@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/core/services/search.service.ts
+  Description: Search API service used by the autocomplete and search UI.
+*/
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -23,6 +29,7 @@ export class SearchService {
 
   constructor(private http: HttpClient) {}
 
+  /** Searches movies and games by query and returns combined results. */
   search(query: string): Observable<SearchResult[]> {
     if (!query.trim()) {
       return new Observable(observer => {
@@ -48,6 +55,7 @@ export class SearchService {
     });
   }
 
+  /** Searches the backend for movies matching the query. */
   private searchMovies(query: string): Observable<SearchResult[]> {
     return new Observable(observer => {
       this.http.get<any>(`${this.api}/movies`, {
@@ -75,6 +83,7 @@ export class SearchService {
     });
   }
 
+  /** Searches the backend for games matching the query. */
   private searchGames(query: string): Observable<SearchResult[]> {
     return new Observable(observer => {
       this.http.get<any>(`${this.api}/games`, {

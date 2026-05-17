@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/pages/movie-detail/movie-detail.component.ts
+  Description: Movie detail page that shows metadata, ratings and related interactions.
+*/
+
 import { CommonModule, Location } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
@@ -93,6 +99,7 @@ export class MovieDetailComponent implements OnInit {
     return this.authService.getAvatarCacheBustValue();
   }
 
+  /** Returns the current user's avatar URL or a generated avatar seed. */
   get currentUserAvatarUrl(): string {
     const userId = this.authService.getUserIdFromToken();
     if (userId) {
@@ -117,6 +124,7 @@ export class MovieDetailComponent implements OnInit {
     private location: Location
   ) {}
 
+  /** Loads the movie details and related interactions on component initialization. */
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
       const movieId = params['id'];

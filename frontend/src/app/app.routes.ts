@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/app.routes.ts
+	Description: Route definitions for the Angular single-page application.
+*/
+
 import { Routes } from '@angular/router';
 import { AIChatComponent } from './pages/ai-chat/ai-chat.component';
 import { adminGuard } from './core/guards/admin.guard';

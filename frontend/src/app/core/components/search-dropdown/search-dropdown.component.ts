@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/core/components/search-dropdown/search-dropdown.component.ts
+  Description: Dropdown component that renders live search suggestions.
+*/
+
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -45,11 +51,13 @@ export class SearchDropdownComponent implements OnDestroy {
       });
   }
 
+  /** Cleans up subscriptions when the component is destroyed. */
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  /** Handles search input changes and triggers a debounced search. */
   onSearchInputChange(query: string): void {
     this.selectedIndex = -1;
     this.searchQuery = query;

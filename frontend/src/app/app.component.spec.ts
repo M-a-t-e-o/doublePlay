@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: src/app/app.component.spec.ts
+  Description: Unit tests for the root application shell.
+*/
+
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 

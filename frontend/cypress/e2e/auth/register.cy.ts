@@ -1,3 +1,9 @@
+/*
+  Project: doublePlay (frontend)
+  File: cypress/e2e/auth/register.cy.ts
+  Description: End-to-end auth test that covers the registration screen, legal modal and navigation back to login.
+*/
+
 describe('Register page', () => {
   it('opens and closes the legal modal, then returns to login', () => {
     cy.visit('/register');

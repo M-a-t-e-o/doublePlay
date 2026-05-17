@@ -1,3 +1,11 @@
+/// <reference types="cypress" />
+
+/*
+  Project: doublePlay (frontend)
+  File: cypress/e2e/auth/login_api.cy.ts
+  Description: End-to-end auth test that exercises login flows against the real backend and checks token storage.
+*/
+
 import { createTestUser, generateValidPassword } from '../../support/auth-helpers'
 
 describe('Login API interactions (real backend)', () => {
