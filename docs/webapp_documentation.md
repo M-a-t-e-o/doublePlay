@@ -5,7 +5,7 @@
 ## Credenciales de acceso (usuario y administrador)
 
 ## Diagrama de arquitectura de componentes
-
+```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                                   USUARIO                                    │
 └───────────────────────────────────────┬──────────────────────────────────────┘
@@ -142,7 +142,10 @@
 │  │ respuestas  │ │ wishlist    │ │ cacheadas   │                             │
 │  └─────────────┘ └─────────────┘ └─────────────┘                             │
 └──────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Servicio externos
+```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                              SERVICIOS EXTERNOS                              │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -180,8 +183,10 @@
 │ YouTube               │◄──────│ Frontend                                    │
 │ Trailers embebidos    │       │ iframe / embed                              │
 └───────────────────────┘       └─────────────────────────────────────────────┘
+```
 
 ### Documentación y pruebas
+```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                          DOCUMENTACIÓN Y TESTING                             │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -225,8 +230,10 @@
 │ limitaciones                │
 │ puntos de mejora            │
 └─────────────────────────────┘
+```
 
 ### Flujo principal de una petición
+```text
 Usuario
   │
   │ Interactúa con la SPA
@@ -268,8 +275,216 @@ Backend Express
   │
   ▼
 Respuesta JSON al frontend
+```
 
-## Fuentes de datos abiertas utilizadas y su integración
+## Fuentes de datos abiertas utilizadas, URLs y explicación de su integración en la aplicación
+
+La aplicación utiliza dos fuentes principales de datos abiertas para construir los catálogos de contenido: **The Movie Database (TMDb)** para películas y **Steam Games Dataset** para videojuegos. Ambas fuentes se integran desde el backend, pero mediante estrategias distintas: en el caso de las películas se utiliza una **API REST**, mientras que en el caso de los videojuegos se realiza un proceso **ETL** a partir de un fichero estático.
+
+---
+
+### 1. Películas - The Movie Database (TMDb)
+
+**URL principal:** https://www.themoviedb.org  
+**API utilizada:** https://api.themoviedb.org/3  
+**Documentación:** https://developer.themoviedb.org/docs/getting-started
+
+**The Movie Database (TMDb)** es una base de datos online de contenido audiovisual que ofrece una API REST para desarrolladores. En doublePlay se utiliza como fuente principal para obtener información de películas, incluyendo título, título original, descripción, fecha de estreno, duración, idioma original, géneros, imágenes de póster y fondo, valoración externa y trailers.
+
+La integración se realiza desde el backend mediante peticiones HTTP con `axios`. La clave de acceso a la API se configura mediante una variable de entorno en el fichero `.env`, evitando incluir credenciales directamente en el código fuente. El endpoint base utilizado es:
+
+```js
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+```
+
+#### Extracción inicial de datos
+
+La carga inicial de películas se realiza mediante el script:
+
+```bash
+node scripts/seedMovies.js
+```
+
+Este script se ejecuta manualmente durante la preparación inicial de la base de datos. Su objetivo es poblar MongoDB con un conjunto amplio de películas obtenidas desde TMDb.
+
+El proceso de extracción consulta varios endpoints de TMDb, entre ellos:
+
+- películas populares;
+- películas mejor valoradas;
+- películas filtradas por géneros principales.
+
+A partir de esos listados se recogen los identificadores de TMDb de cada película. Después, para cada identificador se solicita el detalle completo de la película mediante el endpoint de detalle:
+
+```text
+/movie/{tmdbId}
+```
+
+Además, se utiliza el parámetro `append_to_response=videos` para obtener en la misma petición los vídeos asociados a la película, lo que permite localizar trailers disponibles en YouTube.
+
+#### Transformación y limpieza
+
+La respuesta de TMDb llega en formato JSON. Antes de guardarla en la base de datos, el backend transforma esa respuesta al formato interno definido en el modelo `Movie` de Mongoose.
+
+Durante esta transformación se realizan varias adaptaciones:
+
+- El identificador externo de TMDb se guarda como `tmdbId`.
+- Los géneros, que llegan como objetos con `id` y `name`, se transforman en un array simple de nombres.
+- Las fechas de estreno se convierten a tipo `Date`.
+- Las rutas relativas de imágenes (`poster_path` y `backdrop_path`) se convierten en URLs completas de imagen.
+- Se selecciona el primer vídeo de tipo `Trailer` cuyo proveedor sea `YouTube`, guardando su identificador como `trailerYoutubeId`.
+- Se almacenan datos externos como la valoración media de TMDb.
+- Se añaden campos propios de doublePlay, como la valoración interna, el número de reseñas y la fecha de actualización del documento.
+
+De forma simplificada, el flujo de transformación es:
+
+```text
+JSON de TMDb
+    ↓
+Selección de campos útiles
+    ↓
+Normalización de géneros, fechas e imágenes
+    ↓
+Selección de trailer de YouTube
+    ↓
+Adaptación al schema Movie de Mongoose
+```
+
+#### Guardado en MongoDB
+
+Los datos transformados se almacenan en **MongoDB Atlas** mediante Mongoose. Para evitar duplicados, se utiliza el campo `tmdbId` como identificador externo de referencia. La inserción se realiza mediante operaciones de actualización/inserción (`upsert`), de forma que:
+
+- si la película no existe, se crea un nuevo documento;
+- si la película ya existe, se actualiza con los datos más recientes.
+
+El resultado es un catálogo local de películas almacenado en MongoDB que puede ser consultado por el frontend a través de los endpoints REST de `/api/movies`.
+
+#### Refresco y caché de datos
+
+Además de la carga inicial, el backend incluye un servicio específico para la integración con TMDb:
+
+```text
+module/movies/tmdbService.js
+```
+
+Este servicio centraliza la lógica de consulta, transformación y actualización de películas. Su uso permite aplicar una estrategia de caché local: la aplicación consulta primero MongoDB y solo acude a TMDb cuando el contenido no existe o se considera desactualizado.
+
+También existe un job programado con `node-cron` que refresca periódicamente las películas obsoletas. De este modo, la aplicación reduce el número de llamadas a la API externa y evita depender de TMDb en cada petición del usuario.
+
+El flujo general es:
+
+```text
+Usuario solicita una película
+        ↓
+Backend consulta MongoDB
+        ↓
+¿Existe y está actualizada?
+        ├── Sí → devuelve el dato almacenado
+        └── No → consulta TMDb con axios
+                    ↓
+              transforma el JSON
+                    ↓
+              actualiza MongoDB
+                    ↓
+              devuelve la respuesta
+```
+
+---
+
+### 2. Videojuegos - Steam Games Dataset
+
+**URL:** https://www.kaggle.com/datasets/fronkongames/steam-games-dataset
+
+Para el catálogo de videojuegos se utiliza el dataset abierto **Steam Games Dataset**, disponible en Kaggle. Este conjunto de datos contiene información de juegos publicados en Steam y se utiliza para poblar el catálogo de videojuegos de doublePlay.
+
+A diferencia de TMDb, esta fuente no se consume mediante una API REST en tiempo real. En su lugar, se trabaja con un fichero estático `games.json`, por lo que la integración se realiza mediante un proceso **ETL**: extracción, transformación y carga.
+
+#### Extracción del dataset
+
+La extracción se realiza con el script:
+
+```bash
+node scripts/steamETL.js
+```
+
+Este script lee el fichero:
+
+```text
+backend/data/games.json
+```
+
+Debido al tamaño del dataset, el fichero no se carga completo en memoria. En su lugar, se procesa en streaming utilizando `fs.createReadStream` y `JSONStream`. Esta decisión permite tratar un volumen elevado de registros de forma eficiente y evita problemas de memoria durante la importación.
+
+El flujo de extracción es:
+
+```text
+games.json
+    ↓
+lectura en streaming
+    ↓
+emisión de registros individuales
+    ↓
+procesamiento por lotes
+```
+
+#### Transformación y limpieza
+
+Durante la fase de transformación, cada registro del dataset se adapta al modelo interno `Game` de Mongoose. El backend extrae y normaliza campos como:
+
+- `steamAppId`, utilizado como identificador externo del juego;
+- `title`, obtenido a partir del nombre del juego;
+- `description`, usando la descripción corta disponible;
+- `genres`, con los géneros asociados al juego;
+- `tags`, obtenidos a partir de las etiquetas de comunidad;
+- `releaseDate`, transformada a tipo `Date` cuando es posible;
+- `coverUrl`, usando la imagen principal del juego;
+- `price`, con el precio disponible en el dataset;
+- `platforms`, indicando compatibilidad con Windows, macOS y Linux;
+- `developers`, con la lista de desarrolladores;
+- `importedAt`, para registrar la fecha de importación.
+
+Además, se aplican filtros de limpieza para evitar importar registros incompletos o no adecuados para la aplicación. En concreto, se descartan juegos que cumplan alguna de estas condiciones:
+
+- no tienen nombre;
+- no tienen descripción;
+- no tienen géneros;
+- tienen un número muy bajo de valoraciones positivas;
+- contienen géneros o etiquetas asociadas a contenido sexual explícito, NSFW o no adecuado para el catálogo de la aplicación.
+
+Esta fase permite reducir el dataset original y conservar únicamente aquellos juegos que aportan valor al catálogo de doublePlay.
+
+#### Guardado en MongoDB
+
+Una vez transformados y filtrados, los videojuegos válidos se almacenan en **MongoDB Atlas** mediante Mongoose.
+
+Para mejorar el rendimiento, el script no inserta los documentos uno a uno. En su lugar, acumula operaciones y las ejecuta por lotes mediante `bulkWrite`. Cada operación utiliza el identificador `steamAppId` como referencia, permitiendo insertar juegos nuevos o actualizar juegos existentes sin generar duplicados.
+
+El flujo de carga es:
+
+```text
+Registro válido
+    ↓
+Transformación al schema Game
+    ↓
+Creación de operación updateOne con upsert
+    ↓
+Acumulación en lote
+    ↓
+bulkWrite en MongoDB
+```
+
+En una ejecución documentada del proceso ETL se procesaron más de **122.000 registros**, de los cuales se importaron aproximadamente **20.000 videojuegos** y se descartaron el resto por no cumplir los criterios de calidad definidos.
+
+El resultado final es un catálogo local de videojuegos almacenado en MongoDB, consultable desde el backend mediante los endpoints REST de `/api/games`.
+
+---
+
+### Resumen de integración
+
+| Fuente | URL | Tipo de integración | Destino |
+|---|---|---|---|
+| TMDb | https://www.themoviedb.org | API REST con `axios`, transformación JSON y caché local | Colección `Movie` en MongoDB |
+| Steam Games Dataset | https://www.kaggle.com/datasets/fronkongames/steam-games-dataset | ETL desde `games.json` con streaming, filtros y `bulkWrite` | Colección `Game` en MongoDB |
+
 
 ## Módulos del back-end y descripción breve
 
