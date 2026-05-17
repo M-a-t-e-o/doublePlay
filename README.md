@@ -11,7 +11,7 @@
 - [x] Se ha definido un routing correcto en la aplicación.
 - [x] Todas las vistas tienen botones/enlaces para poder volver al punto/a la vista anterior.
 - [ ] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
-- [ ] Se ha realizado el testing básico E2E del front-end (completo si se quiere optar a los puntos opcionales).
+- [x] Se ha realizado el testing básico E2E del front-end (completo si se quiere optar a los puntos opcionales).
 - [ ] Se ha verificado que no hay problemas ni conflictos con el JavaScript. Si los hay y no se pueden solucionar, se ha identificado el problema y se ha documentado.
 
 ### API
