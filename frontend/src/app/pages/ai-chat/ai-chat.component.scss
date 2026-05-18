@@ -386,13 +386,14 @@ app-search-dropdown {
 @media (max-width: 720px) {
   .chat-shell {
     grid-template-columns: 1fr;
-    height: auto;
+    height: 100dvh;
   }
 
   .content {
-    min-height: auto;
-    height: auto;
+    min-height: 100dvh;
+    height: 100dvh;
     padding: 0.6rem;
+    overflow: hidden;
   }
 
   .page-topbar {
@@ -419,10 +420,27 @@ app-search-dropdown {
     padding-left: 2.2rem;
   }
 
+  .messages-viewport {
+    padding-bottom: calc(9.5rem + env(safe-area-inset-bottom, 0));
+  }
+
   .composer-row {
     gap: 0.5rem;
     /* ensure input has space and doesn't get clipped */
     padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .composer {
+    position: fixed;
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: max(0.6rem, env(safe-area-inset-bottom, 0));
+    padding: 0.75rem;
+    border-radius: 1.2rem;
+    background: linear-gradient(180deg, rgb(22 22 41 / 92%), rgb(18 18 32 / 96%));
+    border: 1px solid rgb(125 129 192 / 16%);
+    box-shadow: 0 20px 40px rgb(0 0 0 / 28%);
+    backdrop-filter: blur(16px);
   }
 
   .send-button {
