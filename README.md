@@ -46,8 +46,8 @@
 
 ### Despliegue
 - [x] La aplicación se ha desplegado en un proveedor PaaS correctamente, o en un IaaS garantizando escalabilidad, seguridad y resiliencia.
-- [ ] Se ha documentado la fase de despliegue, sobre todo si hay más de un PaaS implicado (por ejemplo, uno para back y otro para front).
-- [ ] Se ha documentado el startup inicial de la aplicación. Si requiere la carga de datos iniciales, se proporcionan.
+- [x] Se ha documentado la fase de despliegue, sobre todo si hay más de un PaaS implicado (por ejemplo, uno para back y otro para front).
+- [x] Se ha documentado el startup inicial de la aplicación. Si requiere la carga de datos iniciales, se proporcionan.
 - [x] No hay problemas de CORS al utilizar la aplicación.
 - [x] Si hay problemas de limitación de funcionalidades (por ejemplo, espacio en ATLAS para la DB), se han identificado y documentado.
 - [ ] Se han identificado y documentado las live URL para la aplicación y la documentación del API (Swagger).
