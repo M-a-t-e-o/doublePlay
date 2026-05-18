@@ -134,27 +134,27 @@ La API utiliza autenticacion mediante JWT. En Swagger se ha configurado el esque
 - `npm run dev`: ejecuta el backend con Nodemon para desarrollo.
 - `npm run test`: ejecuta el runner interactivo de tests.
 
-## Stack del backend
+## Justificación de dependencias del backend
 
-| Paquete | Uso |
+| Paquete | Uso en el proyecto |
 |---|---|
-| `express` | Framework HTTP usado para publicar la API REST. |
+| `express` | Framework HTTP utilizado para construir la API REST del backend. |
 | `mongoose` | ODM utilizado para definir modelos y acceder a MongoDB. |
-| `dotenv` | Carga de variables de entorno desde `.env`. |
-| `cors` | Configuracion de origenes permitidos para que el frontend pueda consumir la API. |
-| `jsonwebtoken` | Generacion y verificacion de tokens JWT. |
-| `bcryptjs` | Hash y comparacion segura de contrasenas. |
-| `axios` | Consumo de APIs externas y recursos remotos. |
-| `csv-parser` | Lectura de catalogos CSV usados por el modulo de IA. |
-| `multer` | Gestion de subida de imagenes de perfil. |
-| `nodemailer` | Envio de correos de recuperacion de contrasena. |
-| `node-cron` | Programacion de tareas periodicas del backend. |
-| `swagger-jsdoc` | Generacion de la especificacion OpenAPI a partir de comentarios JSDoc. |
-| `swagger-ui-express` | Publicacion de la interfaz Swagger UI. |
-| `JSONStream` | Lectura en streaming del dataset JSON de Steam. |
-| `@mistralai/mistralai` | Cliente para la integracion con el modelo de IA usado en recomendaciones. |
-| `winston` | Logging centralizado y estructurado del backend. |
-| `nodemon` | Reinicio automatico del servidor durante desarrollo. |
+| `dotenv` | Carga las variables de entorno desde el fichero `.env`. |
+| `cors` | Permite configurar el acceso desde el frontend al backend evitando problemas de CORS. |
+| `jsonwebtoken` | Generación y verificación de tokens JWT para autenticación. |
+| `bcryptjs` | Hash y comparación segura de contraseñas de usuario. |
+| `axios` | Realización de peticiones HTTP a fuentes externas como TMDb y CSV remotos. |
+| `csv-parser` | Procesamiento de ficheros CSV utilizados por el módulo de recomendaciones. |
+| `JSONStream` | Lectura en streaming del dataset de videojuegos en formato JSON. |
+| `multer` | Gestión de subida de imágenes de perfil de usuario. |
+| `node-cron` | Programación de tareas periódicas, como refresco de películas y recálculo de estadísticas. |
+| `nodemailer` | Envío de correos de recuperación de contraseña. |
+| `swagger-jsdoc` | Generación de documentación OpenAPI a partir de comentarios JSDoc en las rutas. |
+| `swagger-ui-express` | Publicación de la interfaz web de Swagger en `/api-docs`. |
+| `winston` | Sistema centralizado de logging estructurado del backend. |
+| `@mistralai/mistralai` | Cliente utilizado para comunicarse con Mistral en el sistema de recomendaciones por IA. |
+| `nodemon` | Dependencia de desarrollo para reiniciar automáticamente el servidor al modificar código. |
 
 ## Variables de entorno principales
 
