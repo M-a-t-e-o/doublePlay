@@ -608,6 +608,13 @@ Petición del usuario → Componente/Página → Servicio `HttpClient` → Backe
 Este apartado complementa la descripción de módulos del backend y refleja la estructura real del código en `frontend/src/app/`.
 
 ## Modelo de IA utilizado y descripción de la integración
+La integración con IA utiliza Mistral AI como sistema de recomendación cruzada entre películas y videojuegos. Esto es, a partir de una película o un videojuego que el usuario especifica haber visto o jugado, recomienda un item del tipo contrario para ver/jugar que la IA entiende que disfutará por parecerse al que el usuario ya ha visto/jugado.
+
+El proceso comienza con un motor de búsqueda local que actúa como un filtro de alta eficiencia para no saturar a la inteligencia artificial. Cuando envías una consulta, el sistema limpia tu texto (quita acentos, minúsculas) y lo fragmenta en palabras clave. Luego, analiza cada película y videojuego de la base de datos mediante un sistema de puntuación (scoreItem): si tus palabras coinciden con los géneros o etiquetas del ítem, este suma muchos puntos; si coinciden con el título o la descripción, suma menos. Tras evaluar todo el catálogo, el algoritmo ordena los resultados y extrae únicamente un "top" de finalistas: las 4 mejores películas y los 6 mejores videojuegos.
+
+Una vez seleccionados estos 10 finalistas, el sistema le entrega el control a Mistral AI para redactar la recomendación final. La IA recibe tu mensaje original acompañado exclusivamente por la lista de esos candidatos seleccionados y un mapa de instrucciones muy estrictas. El modelo de lenguaje evalúa cuál de las opciones pre-filtradas encaja mejor con las sutilezas de tu petición (como el tono o la temática) y redacta una respuesta humana y directa de una o dos frases. Gracias a las reglas del sistema, la IA tiene prohibido inventar títulos o cambiar de medio: si pediste un videojuego basado en una película, usará la película como referencia, pero elegirá obligatoriamente uno de los 6 videojuegos candidatos del catálogo real.
+
+En un principio se propuso usar Gemini pero por las limitaciones de la API que este daba, ha resultado más fácil utilizar Mistral.
 
 ## Despliegue y startup
 
