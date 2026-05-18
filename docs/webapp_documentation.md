@@ -240,50 +240,7 @@
 │ puntos de mejora            │
 └─────────────────────────────┘
 ```
-### Flujo principal de una petición
-```text
-Usuario
-  │
-  │ Interactúa con la SPA
-  ▼
-Frontend Angular
-  │
-  │ Petición HTTP REST / JSON
-  │ Authorization: Bearer JWT cuando procede
-  ▼
-Backend Express
-  │
-  ├─► Middleware CORS / JSON
-  │
-  ├─► Middleware JWT
-  │      ├─ authRequired para rutas privadas
-  │      └─ adminRequired para rutas de administración
-  │
-  ├─► Ruta correspondiente
-  │      ├─ /auth
-  │      ├─ /movies
-  │      ├─ /games
-  │      ├─ /friends
-  │      ├─ /social
-  │      ├─ /profile
-  │      ├─ /admin
-  │      └─ /ai
-  │
-  ├─► Servicio o lógica asociada
-  │
-  ├─► Acceso a MongoDB mediante Mongoose
-  │
-  ├─► Integración externa si es necesaria
-  │      ├─ TMDb
-  │      ├─ Mistral
-  │      ├─ Supabase CSV
-  │      └─ SMTP
-  │
-  ├─► Logging con Winston
-  │
-  ▼
-Respuesta JSON al frontend
-```
+
 
 ## Validación y pruebas realizadas (incl. E2E)
 
