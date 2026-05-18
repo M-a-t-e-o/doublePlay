@@ -5,6 +5,13 @@
 - URL del Swagger: https://doubleplay.onrender.com/api-docs/
 
 ## Credenciales de acceso (usuario y administrador)
+### Usuario administrador
+- correo: paulina@gmail.com
+- contraseña: Hola1234.
+
+### Usuario normal
+- correo: roberto@gmail.com
+- contraseña: Hola1234.
 
 ## Diagrama de arquitectura de componentes
 ```text
@@ -568,6 +575,8 @@ Petición HTTP → Ruta API → Middleware Auth → Servicio/Modelo → MongoDB 
 
 ## Enlaces al prototipado de la solución
 
+- Enlace al Figma con el prototipo de la aplicación: https://www.figma.com/make/BCAYfdpLzSF11Z71Xv6YTv/doublePlay-Wireframe-Design?code-node-id=0-9&p=f&t=7ArCTxqYy1oyNYq9-0&fullscreen=1
+
 ## Tecnología utilizada en el front-end y módulos empleados
 
 Angular 19 junto con TypeScript (~5.7) son la base del frontend: la aplicación está concebida como una SPA con componentes standalone y rutas lazy-loaded (véase `frontend/src/app/app.routes.ts`). Esta arquitectura facilita la carga perezosa de páginas y la escalabilidad del proyecto.
@@ -587,6 +596,46 @@ El proyecto organiza los estilos en SCSS modular por página/componente, con var
 El estado local ligero se gestiona con `localStorage` (p. ej. token y nombre de usuario). Las variables de entorno y la URL de la API están centralizadas en `frontend/src/environments/environment.ts`.
 
 Para testing y CI local, el proyecto incluye tooling para pruebas unitarias (Karma + Jasmine) y E2E (Cypress), declarado en `package.json`. El build y la CLI se apoyan en Angular CLI (`@angular/cli`) con scripts `start`, `build` y `test` en `package.json`.
+
+### Módulos del front-end y descripción breve
+
+El front-end de doublePlay está organizado en `frontend/src/app/` siguiendo una arquitectura por capas: componentes de UI, páginas (views), servicios compartidos y utilidades de aplicación. A continuación se describen los módulos principales y su responsabilidad.
+
+#### Módulos principales
+
+##### 1. **Core** (`frontend/src/app/core/`)
+- **`services/`**: contiene servicios que encapsulan la lógica de negocio y las llamadas al API (`auth.service.ts`, `profile.service.ts`, `search.service.ts`, `social.service.ts`, etc.).
+- **`interceptors/`**: `auth.interceptor.ts` inserta el token JWT en las peticiones y centraliza el manejo de errores.
+- **`guards/`**: `admin.guard.ts` y otros guards protegen rutas y controlan accesos.
+- **Se encarga de:** autenticación, autorización, comunicación con el backend y utilidades compartidas.
+
+##### 2. **Pages** (`frontend/src/app/pages/`)
+- Contiene las vistas principales organizadas por dominio: `home`, `movies`, `games`, `profile`, `admin`, `ai-chat`, `login`, `register`, `reset-password`, `movie-detail`, `game-detail`, `social`, etc.
+- Cada página agrupa componentes, servicios locales y estilos asociados, y suele cargarse de forma lazy-loaded desde `app.routes.ts`.
+- **Se encarga de:** UX principal, enrutamiento y presentación de datos.
+
+##### 3. **Shared / Components** (`frontend/src/app/core/components/`)
+- Componentes reutilizables como `sidebar/`, `search-dropdown/`, `topbar/`, `chips/`, `cards/` que son consumidos por las páginas y layouts.
+- **Se encarga de:** construir la interfaz reutilizable y consistente entre vistas.
+
+##### 4. **Visualización y utilidades**
+- Integración con `Chart.js` en componentes de perfil y admin para gráficos dinámicos (`profile.component.ts`, vistas de estadísticas).
+- Gestión de estado ligero con `localStorage` (token, username) y flujos reactivos con RxJS.
+
+##### 5. **Configuración y entornos**
+- `frontend/src/environments/environment.ts` y `environment.prod.ts` centralizan la URL de la API y otras variables de configuración.
+
+##### 6. **Testing y e2e**
+- Unit tests con Karma + Jasmine y pruebas E2E con Cypress (`frontend/cypress/e2e/`), incluyendo helpers en `cypress/support/`.
+
+##### 7. **Build y tooling**
+- Angular CLI gestionado desde `angular.json` y scripts en `package.json` (`start`, `build`, `test`, `cypress`).
+
+#### Flujo de integración (front-end)
+
+Petición del usuario → Componente/Página → Servicio `HttpClient` → Backend API → Respuesta → Actualización de vista y estado local
+
+Este apartado complementa la descripción de módulos del backend y refleja la estructura real del código en `frontend/src/app/`.
 
 ## Modelo de IA utilizado y descripción de la integración
 
@@ -618,8 +667,17 @@ Implementado con **Nodemailer** y **Gmail SMTP** (se consideró **ProtonMail**, 
 **Limitación:** Esta funcionalidad está disponible únicamente en despliegues locales, ya que **Render** bloquea puertos SMTP en sus despliegues gratuitos. Esto no es ideal, pero es la única solución disponible por el momento.
 
 ### 3. Herramientas para la exportación de los registros del sistema
+Se han implementado utilidades para exportar las estadísticas del panel de administración en formatos **CSV**, **JSON** y **HTML**.
 
-(Falta rellenar)
+Permite al administrador descargar reportes de métricas (usuarios, visualizaciones, contenido top, valoraciones, etc.) directamente desde el panel de administración.
+
+Los **formatos** disponibles son `CSV` (para análisis en hojas de cálculo), `JSON` (estructura completa para consumo programático) y `HTML` (reporte formateado listo para visualización o impresión).
+- Integración back-end: endpoint protegido `GET /admin/stats/` que devuelve el fichero solicitado.
+- Integración front-end: botón de "Exportar" en la vista de estadísticas que abre un selector de formato y lanza la descarga del fichero.
+
+**Seguridad y rendimiento**: la descarga requiere token JWT de administrador; las exportaciones se generan en memoria o mediante streaming para evitar consumo excesivo de memoria y no dejan archivos temporales en el servidor.
+
+**Limitaciones conocidas**: para conjuntos de datos muy grandes la exportación puede tardar y estar sujeta a límites del hosting; se recomendó el uso de streaming en esos casos.
 
 ## Valoración global del proyecto
 
