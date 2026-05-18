@@ -52,6 +52,10 @@ type MovieReview = {
   user: ReviewUser | string;
   content: string;
   rating: number | null;
+  answerTo?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  replies?: MovieReview[];
 };
 
 type MovieReviewsResponse = {
@@ -61,7 +65,7 @@ type MovieReviewsResponse = {
 
 type PendingAction = {
   movieId: string;
-  type: 'watched' | 'wishlist' | 'rating';
+  type: 'watched' | 'wishlist' | 'rating' | 'liked';
   value: boolean | number;
 };
 
@@ -92,6 +96,14 @@ export class MovieDetailComponent implements OnInit {
   isSubmittingReview = false;
   interactionMessage = '';
   readonly reviewMaxLength = 1000;
+  publicReviews: MovieReview[] = [];
+  isLoadingReviews = false;
+  reviewsError = '';
+  readonly replyMaxLength = 1000;
+  private expandedReviewIds = new Set<string>();
+  replyDrafts: Record<string, string> = {};
+  replyErrors: Record<string, string> = {};
+  replySubmitting: Record<string, boolean> = {};
   private ownReviewId: string | null = null;
   private ownReviewContent: string | null = null;
 
@@ -144,6 +156,7 @@ export class MovieDetailComponent implements OnInit {
         next: (response) => {
           this.movie = response;
           this.interactionMessage = '';
+          this.loadPublicReviews(movieId);
           if (this.authService.isLoggedIn()) {
             this.loadInteraction(movieId);
           } else {
@@ -324,6 +337,188 @@ export class MovieDetailComponent implements OnInit {
     });
   }
 
+  canRemoveOwnRating(): boolean {
+    return !!this.movie && !!this.ownReviewId && this.userRating > 0;
+  }
+
+  removeOwnRating(): void {
+    if (!this.movie || !this.ownReviewId || this.userRating < 1) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    this.http
+      .patch(`${this.api}/movies/${this.movie._id}/reviews/${this.ownReviewId}`, { rating: null })
+      .subscribe({
+        next: () => {
+          this.userRating = 0;
+          this.interactionMessage = 'Rating eliminado correctamente.';
+          this.loadMovieDetail(this.movie!._id);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error)) {
+            return;
+          }
+
+          this.interactionMessage = error.error?.message || 'No se pudo eliminar tu rating.';
+        }
+      });
+  }
+
+  getReviewAuthorName(user: ReviewUser | string): string {
+    if (typeof user === 'string') {
+      return 'Usuario';
+    }
+
+    return user?.name?.trim() || 'Usuario';
+  }
+
+  isOwnReview(review: MovieReview): boolean {
+    const userId = this.authService.getUserIdFromToken();
+    if (!userId) {
+      return false;
+    }
+
+    return typeof review.user !== 'string' && review.user?._id === userId;
+  }
+
+  deleteReview(review: MovieReview): void {
+    if (!this.movie) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    const isRoot = review.answerTo === null || review.answerTo === undefined;
+    const hasReplies = (review.replies?.length || 0) > 0;
+    const confirmMessage = isRoot && hasReplies
+      ? 'Este comentario tiene respuestas y se borraran tambien. ¿Continuar?'
+      : '¿Seguro que quieres borrar este comentario?';
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    this.http.delete(`${this.api}/movies/${this.movie._id}/reviews/${review.id}`).subscribe({
+      next: () => {
+        if (isRoot && this.ownReviewId === review.id) {
+          this.ownReviewId = null;
+          this.ownReviewContent = null;
+          this.userRating = 0;
+        }
+
+        this.interactionMessage = 'Comentario eliminado correctamente.';
+
+        if (isRoot) {
+          this.loadMovieDetail(this.movie!._id);
+          return;
+        }
+
+        this.loadPublicReviews(this.movie!._id);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.handleAuthError(error)) {
+          return;
+        }
+
+        this.interactionMessage = error.error?.message || 'No se pudo eliminar el comentario.';
+      }
+    });
+  }
+
+  isRepliesExpanded(reviewId: string): boolean {
+    return this.expandedReviewIds.has(reviewId);
+  }
+
+  getThreadToggleLabel(review: MovieReview): string {
+    if (this.isRepliesExpanded(review.id)) {
+      return 'Hide replies';
+    }
+
+    const repliesCount = review.replies?.length || 0;
+    if (repliesCount > 0) {
+      return `View replies (${repliesCount})`;
+    }
+
+    return 'Reply';
+  }
+
+  toggleReplies(reviewId: string): void {
+    if (this.expandedReviewIds.has(reviewId)) {
+      this.expandedReviewIds.delete(reviewId);
+      return;
+    }
+
+    this.expandedReviewIds.add(reviewId);
+  }
+
+  getReplyLength(reviewId: string): number {
+    return (this.replyDrafts[reviewId] || '').length;
+  }
+
+  submitReply(review: MovieReview): void {
+    if (!this.movie) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    const reviewId = review.id;
+    const content = (this.replyDrafts[reviewId] || '').trim();
+    if (!content) {
+      this.replyErrors[reviewId] = 'Write a reply to publish it.';
+      return;
+    }
+
+    this.replyErrors[reviewId] = '';
+    this.replySubmitting[reviewId] = true;
+
+    this.http
+      .post(`${this.api}/movies/${this.movie._id}/reviews/${reviewId}/replies`, { content })
+      .subscribe({
+        next: () => {
+          this.replyDrafts[reviewId] = '';
+          this.expandedReviewIds.add(reviewId);
+          this.loadPublicReviews(this.movie!._id);
+          this.replySubmitting[reviewId] = false;
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error)) {
+            this.replySubmitting[reviewId] = false;
+            return;
+          }
+
+          this.replyErrors[reviewId] = error.error?.message || 'No se pudo publicar la respuesta.';
+          this.replySubmitting[reviewId] = false;
+        }
+      });
+  }
+
   shareMovie(): void {
     if (navigator.share) {
       navigator.share({
@@ -413,7 +608,7 @@ export class MovieDetailComponent implements OnInit {
             if (this.handleAuthError(error, action)) {
               return;
             }
-            this.interactionMessage = 'No se pudo completar la accion de watched.';
+            this.interactionMessage = 'Failed to complete the watched action.';
           }
         });
       return;
@@ -431,7 +626,7 @@ export class MovieDetailComponent implements OnInit {
             if (this.handleAuthError(error, action)) {
               return;
             }
-            this.interactionMessage = 'No se pudo completar la accion de wishlist.';
+            this.interactionMessage = 'Failed to complete the wishlist action.';
           }
         });
       return;
@@ -462,7 +657,7 @@ export class MovieDetailComponent implements OnInit {
           this.showReviewModal = false;
           return;
         }
-        this.reviewError = error.error?.message || 'No se pudo actualizar tu review.';
+        this.reviewError = error.error?.message || 'Failed to update your review.';
         this.isSubmittingReview = false;
       }
     });
@@ -483,11 +678,12 @@ export class MovieDetailComponent implements OnInit {
           }
 
           const reviewUser = review.user;
-          return typeof reviewUser !== 'string' && reviewUser?._id === userId;
+          const isRoot = review.answerTo === null || review.answerTo === undefined;
+          return isRoot && typeof reviewUser !== 'string' && reviewUser?._id === userId;
         });
 
         if (!ownReview) {
-          this.reviewError = 'Ya tienes una review creada, pero no se pudo localizar para editar.';
+          this.reviewError = 'You have a review created, but it could not be located for editing.';
           this.isSubmittingReview = false;
           return;
         }
@@ -505,7 +701,7 @@ export class MovieDetailComponent implements OnInit {
           return;
         }
 
-        this.reviewError = 'No se pudo recuperar tu review actual para editarla.';
+        this.reviewError = 'Failed to retrieve your current review for editing.';
         this.isSubmittingReview = false;
       }
     });
@@ -527,7 +723,8 @@ export class MovieDetailComponent implements OnInit {
       next: (response) => {
         const ownReview = response.data.find((review) => {
           const reviewUser = review.user;
-          return typeof reviewUser !== 'string' && reviewUser?._id === userId;
+          const isRoot = review.answerTo === null || review.answerTo === undefined;
+          return isRoot && typeof reviewUser !== 'string' && reviewUser?._id === userId;
         });
         this.ownReviewId = ownReview?.id || null;
       },
@@ -542,7 +739,7 @@ export class MovieDetailComponent implements OnInit {
       this.userRating = this.selectedRating;
     }
     this.ownReviewContent = content;
-    this.interactionMessage = 'Review guardada correctamente.';
+    this.interactionMessage = 'Review saved successfully.';
     this.isSubmittingReview = false;
     this.showReviewModal = false;
     this.selectedRating = 0;
@@ -551,6 +748,26 @@ export class MovieDetailComponent implements OnInit {
     if (this.movie) {
       this.loadMovieDetail(this.movie._id);
     }
+  }
+
+  private loadPublicReviews(movieId: string): void {
+    this.isLoadingReviews = true;
+    this.reviewsError = '';
+
+    this.http.get<MovieReviewsResponse>(`${this.api}/movies/${movieId}/reviews`).subscribe({
+      next: (response) => {
+        this.publicReviews = (response.data || []).map((review) => ({
+          ...review,
+          replies: review.replies || []
+        }));
+        this.isLoadingReviews = false;
+      },
+      error: () => {
+        this.publicReviews = [];
+        this.reviewsError = 'Failed to load reviews.';
+        this.isLoadingReviews = false;
+      }
+    });
   }
 
   private handleAuthError(error: HttpErrorResponse, pendingAction?: PendingAction): boolean {

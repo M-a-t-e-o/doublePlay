@@ -102,10 +102,6 @@
               </button>
 
               <div class="icon-buttons">
-                <button type="button" class="btn-icon" title="Like">
-                  <span class="material-symbols-outlined">favorite_border</span>
-                  <span>Like</span>
-                </button>
                 <button type="button" class="btn-icon" (click)="shareGame()" title="Share">
                   <span class="material-symbols-outlined">share</span>
                   <span>Share</span>
@@ -129,12 +125,108 @@
                 }
               </div>
               <p class="rating-hint">Click a star to rate this game</p>
+              
               @if (interactionMessage) {
                 <p class="rating-feedback">{{ interactionMessage }}</p>
               }
             </section>
           </div>
         </div>
+
+        <section class="community-reviews">
+          <h2>Community Reviews</h2>
+
+          @if (isLoadingReviews) {
+            <p class="reviews-state">Loading reviews...</p>
+          } @else if (reviewsError) {
+            <p class="reviews-state reviews-state--error">{{ reviewsError }}</p>
+          } @else if (!publicReviews.length) {
+            <p class="reviews-state">There are no reviews for this game yet.</p>
+          } @else {
+            <div class="reviews-list">
+              @for (review of publicReviews; track review.id) {
+                <article class="review-card">
+                  <header class="review-card-header">
+                    <div>
+                      <p class="review-author">{{ getReviewAuthorName(review.user) }}</p>
+                      <p class="review-date">{{ review.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                    </div>
+                    <div class="review-header-actions">
+                      <div class="review-stars" aria-label="User Rating">
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+                          <span [class.filled]="(review.rating ?? 0) >= star">★</span>
+                        }
+                      </div>
+                      @if (isOwnReview(review)) {
+                        <button type="button" class="review-delete-btn" (click)="deleteReview(review)">
+                          Delete
+                        </button>
+                      }
+                    </div>
+                  </header>
+
+                  <p class="review-content">{{ review.content }}</p>
+
+                  <button
+                    type="button"
+                    class="thread-toggle-btn"
+                    (click)="toggleReplies(review.id)"
+                  >
+                    {{ getThreadToggleLabel(review) }}
+                  </button>
+
+                  @if (isRepliesExpanded(review.id)) {
+                    <div class="review-thread">
+                      @if (review.replies?.length) {
+                        <div class="reply-list">
+                          @for (reply of review.replies; track reply.id) {
+                            <article class="reply-item">
+                              <div class="reply-meta-row">
+                                <p class="reply-meta">
+                                  <strong>{{ getReviewAuthorName(reply.user) }}</strong>
+                                  <span>{{ reply.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                                </p>
+                                @if (isOwnReview(reply)) {
+                                  <button type="button" class="review-delete-btn review-delete-btn--reply" (click)="deleteReview(reply)">
+                                    Delete
+                                  </button>
+                                }
+                              </div>
+                              <p class="reply-content">{{ reply.content }}</p>
+                            </article>
+                          }
+                        </div>
+                      }
+
+                      <div class="reply-composer">
+                        <textarea
+                          rows="3"
+                          [maxlength]="replyMaxLength"
+                          [(ngModel)]="replyDrafts[review.id]"
+                          placeholder="Write a reply..."
+                        ></textarea>
+                        <p class="reply-char-count" [class.limit]="getReplyLength(review.id) >= replyMaxLength">
+                          {{ getReplyLength(review.id) }}/{{ replyMaxLength }}
+                        </p>
+                        @if (replyErrors[review.id]) {
+                          <p class="reply-error">{{ replyErrors[review.id] }}</p>
+                        }
+                        <button
+                          type="button"
+                          class="btn-primary"
+                          [disabled]="replySubmitting[review.id]"
+                          (click)="submitReply(review)"
+                        >
+                          {{ replySubmitting[review.id] ? 'Sending...' : 'Reply' }}
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
       </div>
 
       @if (showReviewModal) {

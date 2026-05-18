@@ -51,6 +51,10 @@ type GameReview = {
   user: ReviewUser | string;
   content: string;
   rating: number | null;
+  answerTo?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  replies?: GameReview[];
 };
 
 type GameReviewsResponse = {
@@ -60,7 +64,7 @@ type GameReviewsResponse = {
 
 type PendingAction = {
   gameId: string;
-  type: 'played' | 'wishlist' | 'rating';
+  type: 'played' | 'wishlist' | 'rating' | 'liked';
   value: boolean | number;
 };
 
@@ -90,6 +94,14 @@ export class GameDetailComponent implements OnInit {
   reviewError = '';
   isSubmittingReview = false;
   readonly reviewMaxLength = 1000;
+  publicReviews: GameReview[] = [];
+  isLoadingReviews = false;
+  reviewsError = '';
+  readonly replyMaxLength = 1000;
+  private expandedReviewIds = new Set<string>();
+  replyDrafts: Record<string, string> = {};
+  replyErrors: Record<string, string> = {};
+  replySubmitting: Record<string, boolean> = {};
 
   private ownReviewId: string | null = null;
   private ownReviewContent: string | null = null;
@@ -138,6 +150,7 @@ export class GameDetailComponent implements OnInit {
       next: (game) => {
         this.game = game;
         this.interactionMessage = '';
+        this.loadPublicReviews(gameId);
         if (this.authService.isLoggedIn()) {
           this.loadInteraction(gameId);
         } else {
@@ -298,6 +311,188 @@ export class GameDetailComponent implements OnInit {
     });
   }
 
+  canRemoveOwnRating(): boolean {
+    return !!this.game && !!this.ownReviewId && this.userRating > 0;
+  }
+
+  removeOwnRating(): void {
+    if (!this.game || !this.ownReviewId || this.userRating < 1) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    this.http
+      .patch(`${this.api}/games/${this.game._id}/reviews/${this.ownReviewId}`, { rating: null })
+      .subscribe({
+        next: () => {
+          this.userRating = 0;
+          this.interactionMessage = 'Rating eliminado correctamente.';
+          this.loadGameDetail(this.game!._id);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error)) {
+            return;
+          }
+
+          this.interactionMessage = error.error?.message || 'No se pudo eliminar tu rating.';
+        }
+      });
+  }
+
+  getReviewAuthorName(user: ReviewUser | string): string {
+    if (typeof user === 'string') {
+      return 'Usuario';
+    }
+
+    return user?.name?.trim() || 'Usuario';
+  }
+
+  isOwnReview(review: GameReview): boolean {
+    const userId = this.authService.getUserIdFromToken();
+    if (!userId) {
+      return false;
+    }
+
+    return typeof review.user !== 'string' && review.user?._id === userId;
+  }
+
+  deleteReview(review: GameReview): void {
+    if (!this.game) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    const isRoot = review.answerTo === null || review.answerTo === undefined;
+    const hasReplies = (review.replies?.length || 0) > 0;
+    const confirmMessage = isRoot && hasReplies
+      ? 'Este comentario tiene respuestas y se borraran tambien. ¿Continuar?'
+      : '¿Seguro que quieres borrar este comentario?';
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    this.http.delete(`${this.api}/games/${this.game._id}/reviews/${review.id}`).subscribe({
+      next: () => {
+        if (isRoot && this.ownReviewId === review.id) {
+          this.ownReviewId = null;
+          this.ownReviewContent = null;
+          this.userRating = 0;
+        }
+
+        this.interactionMessage = 'Comentario eliminado correctamente.';
+
+        if (isRoot) {
+          this.loadGameDetail(this.game!._id);
+          return;
+        }
+
+        this.loadPublicReviews(this.game!._id);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (this.handleAuthError(error)) {
+          return;
+        }
+
+        this.interactionMessage = error.error?.message || 'No se pudo eliminar el comentario.';
+      }
+    });
+  }
+
+  isRepliesExpanded(reviewId: string): boolean {
+    return this.expandedReviewIds.has(reviewId);
+  }
+
+  getThreadToggleLabel(review: GameReview): string {
+    if (this.isRepliesExpanded(review.id)) {
+      return 'Hide replies';
+    }
+
+    const repliesCount = review.replies?.length || 0;
+    if (repliesCount > 0) {
+      return `View replies (${repliesCount})`;
+    }
+
+    return 'Reply';
+  }
+
+  toggleReplies(reviewId: string): void {
+    if (this.expandedReviewIds.has(reviewId)) {
+      this.expandedReviewIds.delete(reviewId);
+      return;
+    }
+
+    this.expandedReviewIds.add(reviewId);
+  }
+
+  getReplyLength(reviewId: string): number {
+    return (this.replyDrafts[reviewId] || '').length;
+  }
+
+  submitReply(review: GameReview): void {
+    if (!this.game) {
+      return;
+    }
+
+    if (!this.authService.isLoggedIn()) {
+      this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          reason: 'auth-required'
+        }
+      });
+      return;
+    }
+
+    const reviewId = review.id;
+    const content = (this.replyDrafts[reviewId] || '').trim();
+    if (!content) {
+      this.replyErrors[reviewId] = 'Write a reply to publish it.';
+      return;
+    }
+
+    this.replyErrors[reviewId] = '';
+    this.replySubmitting[reviewId] = true;
+
+    this.http
+      .post(`${this.api}/games/${this.game._id}/reviews/${reviewId}/replies`, { content })
+      .subscribe({
+        next: () => {
+          this.replyDrafts[reviewId] = '';
+          this.expandedReviewIds.add(reviewId);
+          this.loadPublicReviews(this.game!._id);
+          this.replySubmitting[reviewId] = false;
+        },
+        error: (error: HttpErrorResponse) => {
+          if (this.handleAuthError(error)) {
+            this.replySubmitting[reviewId] = false;
+            return;
+          }
+
+          this.replyErrors[reviewId] = error.error?.message || 'No se pudo publicar la respuesta.';
+          this.replySubmitting[reviewId] = false;
+        }
+      });
+  }
+
   shareGame(): void {
     if (navigator.share) {
       navigator.share({
@@ -376,7 +571,7 @@ export class GameDetailComponent implements OnInit {
           if (this.handleAuthError(error, action)) {
             return;
           }
-          this.interactionMessage = 'No se pudo completar la accion de played.';
+          this.interactionMessage = 'Failed to complete the played action.';
         }
       });
       return;
@@ -392,7 +587,7 @@ export class GameDetailComponent implements OnInit {
           if (this.handleAuthError(error, action)) {
             return;
           }
-          this.interactionMessage = 'No se pudo completar la accion de wishlist.';
+          this.interactionMessage = 'Failed to complete the wishlist action.';
         }
       });
       return;
@@ -444,11 +639,12 @@ export class GameDetailComponent implements OnInit {
           }
 
           const reviewUser = review.user;
-          return typeof reviewUser !== 'string' && reviewUser?._id === userId;
+          const isRoot = review.answerTo === null || review.answerTo === undefined;
+          return isRoot && typeof reviewUser !== 'string' && reviewUser?._id === userId;
         });
 
         if (!ownReview) {
-          this.reviewError = 'Ya tienes una review creada, pero no se pudo localizar para editar.';
+          this.reviewError = 'You have a review created, but it could not be located for editing.';
           this.isSubmittingReview = false;
           return;
         }
@@ -466,7 +662,7 @@ export class GameDetailComponent implements OnInit {
           return;
         }
 
-        this.reviewError = 'No se pudo recuperar tu review actual para editarla.';
+        this.reviewError = 'Failed to retrieve your current review for editing.';
         this.isSubmittingReview = false;
       }
     });
@@ -488,7 +684,8 @@ export class GameDetailComponent implements OnInit {
       next: (response) => {
         const ownReview = response.data.find((review) => {
           const reviewUser = review.user;
-          return typeof reviewUser !== 'string' && reviewUser?._id === userId;
+          const isRoot = review.answerTo === null || review.answerTo === undefined;
+          return isRoot && typeof reviewUser !== 'string' && reviewUser?._id === userId;
         });
         this.ownReviewId = ownReview?.id || null;
       },
@@ -512,6 +709,26 @@ export class GameDetailComponent implements OnInit {
     if (this.game) {
       this.loadGameDetail(this.game._id);
     }
+  }
+
+  private loadPublicReviews(gameId: string): void {
+    this.isLoadingReviews = true;
+    this.reviewsError = '';
+
+    this.http.get<GameReviewsResponse>(`${this.api}/games/${gameId}/reviews`).subscribe({
+      next: (response) => {
+        this.publicReviews = (response.data || []).map((review) => ({
+          ...review,
+          replies: review.replies || []
+        }));
+        this.isLoadingReviews = false;
+      },
+      error: () => {
+        this.publicReviews = [];
+        this.reviewsError = 'Failed to load reviews.';
+        this.isLoadingReviews = false;
+      }
+    });
   }
 
   private handleAuthError(error: HttpErrorResponse, pendingAction?: PendingAction): boolean {
