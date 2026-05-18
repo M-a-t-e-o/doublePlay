@@ -1,6 +1,8 @@
 # DOCUMENTATION
 
 ## URLs de acceso al API (Swagger) y al Front-end
+- URL del Frontend: https://doubleplay-frontend.onrender.com
+- URL del Swagger: https://doubleplay.onrender.com/api-docs/
 
 ## Credenciales de acceso (usuario y administrador)
 
@@ -488,7 +490,81 @@ El resultado final es un catálogo local de videojuegos almacenado en MongoDB, c
 
 ## Módulos del back-end y descripción breve
 
+El backend de doublePlay está estructurado modularmente en `backend/module/`, con cada módulo encapsulando la lógica de negocio asociada a una entidad principal:
+
+### Módulos principales
+
+#### 1. **User** (`backend/module/user/`)
+- **user.model.js**: Modelo de datos de usuarios, incluyendo autenticación, roles y perfil.
+- **friendship.model.js**: Modelo para gestionar relaciones de amistad entre usuarios.
+- **Se encarga de:**: Registro, login, recuperación de contraseña, gestión de perfil y amistades.
+
+#### 2. **Movies** (`backend/module/movies/`)
+- **movie.model.js**: Modelo para películas con información de catálogo, reseñas y wishlist.
+- **tmdbService.js**: Servicio de integración con TMDb API para importación, actualización y caché de películas.
+- **Se encarga de:**: Catálogo de películas, detalles, búsqueda, reseñas de películas, wishlist y consulta a TMDb.
+
+#### 3. **Games** (`backend/module/games/`)
+- **game.model.js**: Modelo para videojuegos importados desde el Steam Games Dataset.
+- **Se encarga de:**: Catálogo de videojuegos, detalles, búsqueda, reseñas de juegos y wishlist.
+
+#### 4. **Review** (`backend/module/review/`)
+- **review.model.js**: Modelo para reseñas y respuestas de usuarios.
+- **review.utils.js**: Utilidades para cálculo de puntuaciones y estadísticas de reseñas.
+- **Se encarga de:**: Creación, edición, eliminación y gestión de reseñas en películas y juegos.
+
+#### 5. **Interaction** (`backend/module/interaction/`)
+- **interaction.model.js**: Modelo para rastrear interacciones del usuario (visualizaciones, wishlist, etc.).
+- **Se encarga de:**: Registro de qué películas/juegos ha visto o añadido a favoritos cada usuario.
+
+#### 6. **Stats** (`backend/module/stats/`)
+- **stats.model.js**: Modelo para estadísticas agregadas del sistema.
+- **stats.service.js**: Servicio para cálculo de métricas, rankings y visualizaciones.
+- **Se encarga de:**: Generación de estadísticas globales, rankings de contenido, métricas de usuarios y panel administrativo.
+
+### Componentes complementarios
+
+#### **Rutas API** (`backend/routes/`)
+Define los endpoints REST organizados por dominios:
+- `auth.js`: Login, registro, recuperación de contraseña.
+- `users.js`: Gestión de perfil y datos de usuario.
+- `movies.js`: Operaciones sobre películas (búsqueda, reseñas, wishlist).
+- `games.js`: Operaciones sobre videojuegos (búsqueda, reseñas, wishlist).
+- `friends.js`: Solicitudes de amistad y gestión de amigos.
+- `social.js`: Feed social y actividad de amigos.
+- `profile.js`: Historial y estadísticas de usuario.
+- `admin.js`: Panel administrativo y métricas globales.
+- `ai.js`: Endpoint de recomendaciones con IA.
+
+#### **Middleware** (`backend/middleware/`)
+- `auth.js`: Validación de JWT y roles (authRequired, adminRequired).
+
+#### **Configuración** (`backend/config/`)
+- `swagger.js`: Configuración de la documentación OpenAPI/Swagger.
+
+#### **Jobs programados** (`backend/jobs/`)
+- `refreshJobs.js`: Tareas recurrentes con `node-cron` para refrescar películas y recalcular estadísticas.
+
+#### **Utilidades** (`backend/utils/`)
+- `emailService.js`: Envío de correos electrónicos (recuperación de contraseña) con Nodemailer.
+- `logger.js`: Logging estructurado con Winston (info, warn, error).
+
+#### **Scripts de inicialización** (`backend/scripts/`)
+- `seedMovies.js`: Carga inicial de películas desde TMDb.
+- `steamETL.js`: Proceso ETL para importar videojuegos desde el Steam Games Dataset.
+- `migrate_users.js`: Migración de datos de usuario si es necesaria.
+
+#### **Testing** (`backend/test/`)
+Pruebas interactivas de endpoints organizadas por módulo (auth, movies, games, profile, reviews, interactions, social, admin).
+
+### Flujo de integración
+
+```text
+Petición HTTP → Ruta API → Middleware Auth → Servicio/Modelo → MongoDB ↔ Servicios Externos
+```
+
 ## Enlaces al Swagger del API
+- URL del Swagger: https://doubleplay.onrender.com/api-docs/
 
 ## Enlaces al prototipado de la solución
 
@@ -518,7 +594,35 @@ Para testing y CI local, el proyecto incluye tooling para pruebas unitarias (Kar
 
 ## Mejoras implementadas (opcional)
 
+### 1. Analizadores estáticos de código
+
+Se integra **SonarQube** para análisis automático de calidad del código, detectando vulnerabilidades, code smells y duplicaciones en backend y frontend.
+
+- SonarQube se instaló en el repositorio y realizó un análisis completo.
+- Se corrigieron los fallos más sencillos y aparentes.
+- No se eliminaron todos los issues debido al coste de tiempo que eso conllevaría.
+
+### 2. Sistema de recuperación de contraseña por correo
+
+Implementado con **Nodemailer** y **Gmail SMTP** (se consideró **ProtonMail**, pero solo ofrece SMTP en suscripción de pago).
+
+**Flujo:**
+- Usuario solicita reset de contraseña.
+- Recibe enlace temporal con token JWT válido por 1 hora.
+- Token permite establecer nueva contraseña.
+
+**Integración:**
+- Servicio centralizado en `backend/utils/emailService.js`
+- Endpoints: `/auth/forgot-password`, `/auth/reset-password`
+
+**Limitación:** Esta funcionalidad está disponible únicamente en despliegues locales, ya que **Render** bloquea puertos SMTP en sus despliegues gratuitos. Esto no es ideal, pero es la única solución disponible por el momento.
+
+### 3. Herramientas para la exportación de los registros del sistema
+
+(Falta rellenar)
+
 ## Valoración global del proyecto
+
 El proyecto cumple los objetivos planteados. Se ha desarrollado siguiendo las metodologías indicadas en clase y los resultados obtenidos responden a las expectativas del equipo. La solución es funcional, coherente con los requisitos y demostrable en su conjunto.
 
 ## Mejoras propuestas y limitaciones conocidas
@@ -527,6 +631,7 @@ El proyecto cumple los objetivos planteados. Se ha desarrollado siguiendo las me
 - Se utiliza una base de datos en modalidad gratuita con límite de capacidad, lo que puede afectar la escalabilidad y el rendimiento.
 
 - La integración con Gemini presentó problemas por las políticas de consulta y mensajes de error poco descriptivos; por ello se migró a Mistral como alternativa.
+
 - Al añadir el nuevo campo de foto de perfil en la base de datos fue necesario implementar avatares de fallback para los usuarios sin imagen.
 
 - No se definieron con suficiente claridad los roles dentro del equipo, especialmente las responsabilidades del perfil fullstack, ya que fueron al final tres personas en backend y una en frontend.
