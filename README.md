@@ -10,7 +10,7 @@
 - [x] En el desarrollo se utilizan los elementos de programación propios del lenguaje escogido (por ejemplo, servicios, componentes, etc.).
 - [x] Se ha definido un routing correcto en la aplicación.
 - [x] Todas las vistas tienen botones/enlaces para poder volver al punto/a la vista anterior.
-- [ ] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
+- [x] Todo el código está correctamente documentado. Como mínimo, todos los ficheros tienen una cabecera identificativa, y las funciones un comentario con lo que hacen.
 - [x] Se ha realizado el testing básico E2E del front-end (completo si se quiere optar a los puntos opcionales).
 - [x] Se ha verificado que no hay problemas ni conflictos con el JavaScript. Si los hay y no se pueden solucionar, se ha identificado el problema y se ha documentado.
 
@@ -39,9 +39,9 @@
 ### Validación y testing
 - [x] Se realiza validación de los datos introducidos desde el front-end tanto en el front como en back. Lo ideal es usar los schemas, pero se puede hacer manual si no da tiempo.
 - [x] Se ha realizado el testing de front, back y API.
-- [ ] Se ha documentado cada uno de los testing realizados. No es necesario mucho nivel de detalle, pero al menos una tabla con las pruebas realizadas.
+- [x] Se ha documentado cada uno de los testing realizados. No es necesario mucho nivel de detalle, pero al menos una tabla con las pruebas realizadas.
 - [x] Las pruebas se han realizado con éxito.
-- [ ] Si hay problemas con alguna prueba, el error se ha identificado y documentado.
+- [x] Si hay problemas con alguna prueba, el error se ha identificado y documentado.
 - [x] Hay un testing E2E mínimo.
 
 ### Despliegue

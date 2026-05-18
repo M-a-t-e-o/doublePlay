@@ -240,7 +240,6 @@
 │ puntos de mejora            │
 └─────────────────────────────┘
 ```
-
 ### Flujo principal de una petición
 ```text
 Usuario
@@ -285,6 +284,20 @@ Backend Express
   ▼
 Respuesta JSON al frontend
 ```
+
+## Validación y pruebas realizadas (incl. E2E)
+
+La validación funcional del frontend se ha documentado con pruebas end-to-end en Cypress. La configuración se encuentra en `cypress.config.ts` y los specs están en `cypress/e2e/auth`.
+
+| Prueba | Archivo | Tipo | Qué valida |
+|---|---|---|---|
+| Login UI | `cypress/e2e/auth/login.cy.ts` | E2E visual | Render del formulario de acceso, visibilidad de contraseña y navegación a registro |
+| Login con backend real | `cypress/e2e/auth/login_api.cy.ts` | E2E + API | Inicio de sesión correcto, almacenamiento del token en `localStorage` y manejo de credenciales inválidas |
+| Registro UI | `cypress/e2e/auth/register.cy.ts` | E2E visual | Apertura/cierre del modal legal y navegación de vuelta a login |
+| Registro con backend real | `cypress/e2e/auth/register_api.cy.ts` | E2E + API | Alta de usuario desde la interfaz y validación de errores por duplicidad de username |
+
+Además de estas pruebas E2E, el proyecto mantiene tests unitarios y de integración del frontend y backend según la estructura del repositorio.
+
 
 ## Fuentes de datos abiertas utilizadas, URLs y explicación de su integración en la aplicación
 
