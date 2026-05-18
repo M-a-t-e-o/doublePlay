@@ -4,7 +4,7 @@
 - [x] El diseño del front-end se adapta a lo planteado en el prototipo.
 - [x] La aplicación es totalmente responsive. Si algún componente no se visualiza adecuadamente en la versión móvil, se ha eliminado. En la versión de escritorio, los componentes no quedan desproporcionados con respecto al viewport.
 - [x] Se ha utilizado un framework de diseño y desarrollo de front-end como Bootstrap o Material, por ejemplo.
-- [ ] No hay errores en el renderizado de las páginas. Esto podéis comprobarlo navegando con la consola del inspector del navegador abierta. 
+- [x] No hay errores en el renderizado de las páginas. Esto podéis comprobarlo navegando con la consola del inspector del navegador abierta. 
 - [x] Se utilizan modales en lugar de alerts o popups.
 - [x] Si se ha utilizado una plantilla/template en alguna parte del front-end, se referencia correctamente en el código y en la documentación.
 - [x] En el desarrollo se utilizan los elementos de programación propios del lenguaje escogido (por ejemplo, servicios, componentes, etc.).
@@ -51,4 +51,4 @@
 - [x] No hay problemas de CORS al utilizar la aplicación.
 - [x] Si hay problemas de limitación de funcionalidades (por ejemplo, espacio en ATLAS para la DB), se han identificado y documentado.
 - [ ] Se han identificado y documentado las live URL para la aplicación y la documentación del API (Swagger).
-- [ ] Se han documentado al menos un usuario administrador y un usuario demo, con su contraseña.
+- [x] Se han documentado al menos un usuario administrador y un usuario demo, con su contraseña.
