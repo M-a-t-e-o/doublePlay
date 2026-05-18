@@ -639,6 +639,25 @@ Este apartado complementa la descripción de módulos del backend y refleja la e
 
 ## Modelo de IA utilizado y descripción de la integración
 
+## Despliegue y startup
+
+El proyecto se despliega en **Render** separando backend y frontend:
+
+### Backend
+- Se publica como **Web Service**.
+- El arranque en producción usa el script `start` del `backend/package.json`, que ejecuta `node index.js`.
+- El servidor Express escucha en el puerto indicado y, si no existe, usa el puerto `3000`.
+- La conexión a MongoDB se inicializa con la Mongo Uri indicada.
+
+### Frontend
+- Se publica como **Static Site**.
+- El build de producción usa `npm run build`, que genera la salida en `frontend/dist/frontend`.
+- En producción Angular sustituye `src/environments/environment.ts` por `src/environments/environment.prod.ts`, donde queda definida la URL del backend en Render.
+
+### Carga de variables de entorno en Render
+
+En local, el backend carga las variables desde el archivo `.env` con `require('dotenv').config()` al iniciar `backend/index.js`. En Render no se sube el archivo `.env`; en su lugar, las mismas claves se crean en el panel del servicio, en la sección **Environment Variables**. Render las expone como variables de proceso (por lo tanto, `dotenv` no haría falta en producción para leerlas.)
+
 ## Validación y pruebas realizadas (incl. E2E)
 
 ## Mejoras implementadas (opcional)
